@@ -1,49 +1,54 @@
 import numpy as np
 import tkinter as tk
-from tkinter.filedialog import askopenfile
+# from tkinter.filedialog import askopenfile
 import pandas as pd
-
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.use('TkAgg')
 
+from algorithms.rnn import *
+from algorithms.lstm import *
+from algorithms.sarimax import *
+from algorithms.xgboost import *
+
+# activate interactive mode, so algorithms shouldn't get interrupted when plt.show()
+# plt.ion()
 
 root = tk.Tk()
 root.geometry("600x400")
 root.title("Energy Consumption Graph")
 
-# read csv files
-def open_file():
-    file = askopenfile(mode='r', filetypes=[('csv files', '*.csv')])
-    if file is not None:
-        data = np.random.normal(2000, 23, 5000)
-        plt.hist(data, 200)
-        plt.xlabel('Time')
-        plt.ylabel('MW')
-        plt.show()
-        # fig.canvas.draw()
+def run_algorithm():
+    if (var1.get() == "LSTM"):
+        print("I will now run the " + var1.get() + " algorithm")
+        lstm_algorithm()
+        print(var1.get() + " algorithm completed")
+    elif (var1.get() == "XGBOOST"):
+        print("I will now run the " + var1.get() + " algorithm")
+        # xgboost_algorithm()
+        print(var1.get() + " algorithm completed")
+    elif (var1.get() == "SARIMAX"):
+        print("I will now run the " + var1.get() + " algorithm")
+        sarimax_algorithm()
+        print(var1.get() + " algorithm completed")
+    elif (var1.get() == "RNN"):
+        print("I will now run the " + var1.get() + " algorithm")
+        rnn_algorithm()
+        print(var1.get() + " algorithm completed")
+        
+tk.Button(root, text='Run the algorithm', command=run_algorithm).grid(row=2, column=1)
 
+# so root window stays interactive (maybe later)
+# tk.Button(root, text='Run the algorithm', command=threading.Thread(target=run_algorithm).start).grid(row=2, column=1)
 
-tk.Button(root, text='Open', command=open_file).grid(row=2, column=1)
-
-def _quit():
-    root.quit()
-    root.destroy()  # correction: to clean the window when exit
-
-# add a quit button below 'update' button
-tk.Button(root, text='Quit', command=_quit).grid(row=2, column=0)
-
-tk.Label(root, text="Choose the desired Algorithm ").grid(row=3, column=0)
-
+var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
 def printResults():
     print(var1.get())
 
-var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
 tk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=printResults).grid(row=4, column=0)
 tk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=printResults).grid(row=5, column=0)
 tk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=printResults).grid(row=6, column=0)
 tk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=printResults).grid(row=7, column=0)
-
-
 
 root.mainloop()
