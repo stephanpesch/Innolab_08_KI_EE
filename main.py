@@ -26,7 +26,7 @@ def run_algorithm():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("I will now run the " + var1.get() + " algorithm")
-        # xgboost_algorithm()
+        xgboost_algorithm()
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
