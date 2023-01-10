@@ -1,4 +1,4 @@
-def rnn_algorithm(): 
+def rnn_algorithm(df, checked_columns):
     import pandas as pd
     import numpy as np # linear algebra # not used
     import matplotlib.pyplot as plt

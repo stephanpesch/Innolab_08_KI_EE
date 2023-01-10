@@ -1,4 +1,4 @@
-def xgboost_algorithm():
+def xgboost_algorithm(df, checked_columns):
     import numpy as np
     import pandas as pd
     import matplotlib
@@ -6,7 +6,7 @@ def xgboost_algorithm():
     from prophet import Prophet
     from xgboost import XGBRegressor
 
-    df = pd.read_csv('csv_files/xgboost/DAYTON_hourly.csv', index_col='Datetime')
+    #df = pd.read_csv('csv_files/xgboost/DAYTON_hourly.csv', index_col='Datetime')
     df.index = pd.to_datetime(df.index)
     df = df.sort_index()
 

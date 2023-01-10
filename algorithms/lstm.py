@@ -1,4 +1,4 @@
-def lstm_algorithm():
+def lstm_algorithm(df, checked_columns):
 
     import numpy as np
     import matplotlib.pyplot as plt
