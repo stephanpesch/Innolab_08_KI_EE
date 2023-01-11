@@ -1,4 +1,4 @@
-def sarimax_algorithm(df, checked_columns):
+def sarimax_algorithm(file, checked_columns, col_names):
     from pmdarima.arima import auto_arima
     from statsmodels.tsa.statespace.sarimax import SARIMAX
     import pandas as pd

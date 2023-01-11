@@ -1,17 +1,40 @@
-def xgboost_algorithm(df, checked_columns):
+def index_to_column(data):
+    import pandas as pd
+    data = data.reset_index()
+    data['Datetime'] = pd.to_datetime(data['Datetime'])
+    data = data.sort_values('Datetime')
+
+    data = data.rename(columns={'Datetime': 'ds', 'DAYTON_MW': 'y'})
+    return data
+
+def xgboost_algorithm(file, checked_columns, col_names):
     import numpy as np
     import pandas as pd
     import matplotlib
     import matplotlib.pyplot as plt
     from prophet import Prophet
     from xgboost import XGBRegressor
+    from sklearn.metrics import mean_squared_error
+    from math import sqrt
 
-    #df = pd.read_csv('csv_files/xgboost/DAYTON_hourly.csv', index_col='Datetime')
+    count = 0
+    indx_col = ""
+    for check in checked_columns:
+        if check.get() == 1:
+            indx_col = col_names[count]
+            break
+        count += 1
+
+    print(indx_col)
+    df = pd.read_csv(file, index_col=indx_col)
     df.index = pd.to_datetime(df.index)
     df = df.sort_index()
 
     # The data that we are going to use
     df.head()
+
+    #############################################################################################
+    #training section
 
     # Before building and training our model, let's split the data into training and testing
     df_train, df_test = df[df.index < '2016-01-01'], df[df.index >= '2016-01-01']
@@ -20,16 +43,23 @@ def xgboost_algorithm(df, checked_columns):
     X_test, y_test = date_transform(df_test)
 
     xgb_model = XGBRegressor(n_estimators=1000, learning_rate=0.05, early_stopping_rounds=10)
-    xgb_model.fit(X_train, y_train, eval_metric='mae', eval_set=[(X_train, y_train), (X_test, y_test)])
+    xgb_model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)])
+    xgb_pred = xgb_model.predict(X_test)
 
-    def index_to_column(data):
-        data = data.reset_index()
-        data['Datetime'] = pd.to_datetime(data['Datetime'])
-        data = data.sort_values('Datetime')
+    rmse = sqrt(mean_squared_error(y_test, xgb_pred))  # root mean square error
 
-        data = data.rename(columns={'Datetime': 'ds', 'DAYTON_MW': 'y'})
-        return data
+    df_plot = pd.DataFrame({'y_test': y_test, 'xgb_pred': xgb_pred})
 
+    plt.figure(figsize=(20, 8))
+
+    df_plot['y_test'].plot(label='Actual')
+    df_plot['xgb_pred'].plot(label='Predicted')
+    plt.text(16770, 3250, 'RMSE: {}'.format(rmse), fontsize=20, color='red')
+    plt.title('Testing Set Forecast', weight='bold', fontsize=25)
+    plt.legend()
+
+    #####################################################################################################
+    #prediction section
     new_df = index_to_column(df)
     prophet_model2 = Prophet(interval_width=0.95)
     prophet_model2.fit(new_df)
@@ -54,7 +84,7 @@ def xgboost_algorithm(df, checked_columns):
     y = pd.concat([y_train, y_test], ignore_index=True)
 
     xgb_model2 = XGBRegressor(n_estimators=1000, learning_rate=0.05)
-    xgb_model2.fit(X, y, eval_metric='mae')
+    xgb_model2.fit(X, y)
     xgb_pred2 = xgb_model2.predict(future_dates2)
 
     df_plot2 = pd.DataFrame({'Hour': future_dates2['Hour'], 'xgb_pred2': xgb_pred2})
@@ -67,6 +97,7 @@ def xgboost_algorithm(df, checked_columns):
     df_plot2['xgb_pred2'].plot()
     plt.title('7 Days Forecast', weight='bold', fontsize=25)
     plt.show()
+
 
 def date_transform(data):
     df = data.copy()
@@ -84,6 +115,7 @@ def date_transform(data):
     y = df['DAYTON_MW']
 
     return X, y
+
 
 
 

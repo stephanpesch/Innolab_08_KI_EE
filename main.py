@@ -30,19 +30,19 @@ def run_algorithm():
     #print(checked_columns[0].get())  the checked boxes can be accessed like this, 1 = > checked / 0 => not checked
     if (var1.get() == "LSTM"):
         print("I will now run the " + var1.get() + " algorithm")
-        lstm_algorithm(df, checked_columns)
+        lstm_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("I will now run the " + var1.get() + " algorithm")
-        xgboost_algorithm(df, checked_columns)
+        xgboost_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
-        sarimax_algorithm(df, checked_columns)
+        sarimax_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "RNN"):
         print("I will now run the " + var1.get() + " algorithm")
-        rnn_algorithm(df, checked_columns)
+        rnn_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
 
 # function to open a new window
@@ -69,10 +69,11 @@ def open_new_window():
         checked_columns.append(tk.IntVar())
         row_counter+=1
         tk.Checkbutton(new_window, text = col_name, variable = checked_columns[-1],
-                 onvalue = 1, offvalue = 0, height=5,
-                 width = 20).grid(row=row_counter, column=0)
+                 onvalue = 1, offvalue = 0, height=1,
+                 width = 20, anchor=tk.W).grid(row=row_counter, column=1)
 
     tk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=8, column=2)
+
 
 tk.Button(root, text='Train Model', command=open_new_window).grid(row=8, column=2)
 
@@ -80,17 +81,20 @@ tk.Button(root, text='Train Model', command=open_new_window).grid(row=8, column=
 
 def upload_file():
     f_types = [('CSV files',"*.csv"),('All',"*.*")]
+    global file
     file = filedialog.askopenfilename(filetypes=f_types)
     #l1.config(text=file) # display the path
-    global df
-    df=pd.read_csv(file) # create DataFrame
+    df = pd.read_csv(file)  # create DataFrame
     global col_names
     col_names = list(df.columns)
     print(col_names)
+    label1['text'] = file.split('/')[len(file.split('/'))-1]        #display filename
 
 b1 = tk.Button(root, text='Upload CSV-File',
    width=20,command = lambda:upload_file())
 b1.grid(row= 5, column=3)
+label1 = tk.Label(text='Please choose a file')
+label1.grid(row=6, column=3)
 
 # so root window stays interactive (maybe later)
 # tk.Button(root, text='Run the algorithm', command=threading.Thread(target=run_algorithm).start).grid(row=2, column=1)
