@@ -1,10 +1,10 @@
-def index_to_column(data):
+def index_to_column(data, indx_col, power_col):
     import pandas as pd
     data = data.reset_index()
-    data['Datetime'] = pd.to_datetime(data['Datetime'])
-    data = data.sort_values('Datetime')
+    data[indx_col] = pd.to_datetime(data[indx_col])
+    data = data.sort_values(indx_col)
 
-    data = data.rename(columns={'Datetime': 'ds', 'DAYTON_MW': 'y'})
+    data = data.rename(columns={indx_col: 'ds', power_col: 'y'})
     return data
 
 def xgboost_algorithm(file, checked_columns, col_names):
@@ -18,17 +18,24 @@ def xgboost_algorithm(file, checked_columns, col_names):
     from math import sqrt
 
     count = 0
+    found = False
     indx_col = ""
+    power_col = ""
     for check in checked_columns:
-        if check.get() == 1:
+        if check.get() == 1 and not found:
             indx_col = col_names[count]
-            break
+            global df
+            df = pd.read_csv(file, index_col=indx_col)
+            df.index = pd.to_datetime(df.index)
+            df = df.sort_index()
+            found = True
+        if check.get() == 1:
+            power_col = col_names[count]
+        if check.get() == 0:
+            df = df.drop(col_names[count], axis = 1)
         count += 1
 
     print(indx_col)
-    df = pd.read_csv(file, index_col=indx_col)
-    df.index = pd.to_datetime(df.index)
-    df = df.sort_index()
 
     # The data that we are going to use
     df.head()
@@ -37,10 +44,17 @@ def xgboost_algorithm(file, checked_columns, col_names):
     #training section
 
     # Before building and training our model, let's split the data into training and testing
-    df_train, df_test = df[df.index < '2016-01-01'], df[df.index >= '2016-01-01']
+    #df_train, df_test = df[df.index < '2016-01-01'], df[df.index >= '2016-01-01']
+    df_train, df_test = df[:], df[-7200:]
 
-    X_train, y_train = date_transform(df_train)
-    X_test, y_test = date_transform(df_test)
+    X_train, y_train = date_transform(df_train, power_col)
+    X_test, y_test = date_transform(df_test, power_col)
+
+    print(X_train)
+    print(y_train)
+
+    print(X_test)
+    print(y_test)
 
     xgb_model = XGBRegressor(n_estimators=1000, learning_rate=0.05, early_stopping_rounds=10)
     xgb_model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)])
@@ -60,7 +74,7 @@ def xgboost_algorithm(file, checked_columns, col_names):
 
     #####################################################################################################
     #prediction section
-    new_df = index_to_column(df)
+    new_df = index_to_column(df, indx_col, power_col)
     prophet_model2 = Prophet(interval_width=0.95)
     prophet_model2.fit(new_df)
     # 7 days to the future (7x24 = 168)
@@ -89,17 +103,18 @@ def xgboost_algorithm(file, checked_columns, col_names):
 
     df_plot2 = pd.DataFrame({'Hour': future_dates2['Hour'], 'xgb_pred2': xgb_pred2})
 
-    last_week = df['2018-07-01':'2018-08-15']
+    #last_week = df['2018-07-01':'2018-08-15']
+    last_week = df[-168:]
 
     plt.figure(figsize=(20, 8))
 
-    last_week['DAYTON_MW'].plot()
+    last_week[power_col].plot()
     df_plot2['xgb_pred2'].plot()
     plt.title('7 Days Forecast', weight='bold', fontsize=25)
     plt.show()
 
 
-def date_transform(data):
+def date_transform(data, power_col):
     df = data.copy()
 
     df['Hour'] = df.index.hour
@@ -111,8 +126,8 @@ def date_transform(data):
     df['Quarter'] = df.index.quarter
     df['Year'] = df.index.year
 
-    X = df.drop('DAYTON_MW', axis=1)
-    y = df['DAYTON_MW']
+    X = df.drop(power_col, axis=1)
+    y = df[power_col]
 
     return X, y
 
