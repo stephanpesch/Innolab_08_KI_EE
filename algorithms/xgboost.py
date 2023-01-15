@@ -40,6 +40,9 @@ def xgboost_algorithm(file, checked_columns, col_names):
     # The data that we are going to use
     df.head()
 
+    #Drop all NaN rows
+    df = df.dropna()
+
     #############################################################################################
     #training section
 
@@ -112,7 +115,6 @@ def xgboost_algorithm(file, checked_columns, col_names):
     df_plot2['xgb_pred2'].plot()
     plt.title('7 Days Forecast', weight='bold', fontsize=25)
     plt.show()
-
 
 def date_transform(data, power_col):
     df = data.copy()
