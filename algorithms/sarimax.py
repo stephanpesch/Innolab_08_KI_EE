@@ -4,6 +4,7 @@ def sarimax_algorithm(file, checked_columns, col_names):
     import pandas as pd
     import numpy as np
     import matplotlib.pyplot as plt
+    from statsmodels.tools.eval_measures import rmse
     # %matplotlib inline
 
     useColumns=[]
@@ -22,25 +23,26 @@ def sarimax_algorithm(file, checked_columns, col_names):
 
     print(energy_df)
     
+    energy_df.sort_values(by=useColumns[0], ascending = True)
     energy_df= energy_df.fillna(method='ffill')
-    energy_df.dropna(
-        axis=0,
-        how='any',
-        subset=None,
-        inplace=True
-    )
-    energy_df= energy_df.asfreq('H')
+    energy_df=energy_df.sort_values(by= useColumns[0], ascending = True)
+    energy_df.dropna(axis=0,how='any',subset=None,inplace=True)
 
-    
+    energy_df = energy_df[~energy_df.index.duplicated(keep='first')]
+
+    energy_df= energy_df.asfreq('H')
+    energy_df= energy_df.fillna(method='ffill')
 
 
     # ---------------------------------------------------------------------------------
 
-    col_list_weather = ["dt_iso", "temp", "pressure", "humidity", "wind_speed", "weather_description"]
-    weather_df = pd.read_csv("csv_files/sarimax/weather_features.csv", usecols=col_list_weather, index_col='dt_iso', parse_dates=True)
+    #col_list_weather = ["dt_iso", "temp", "pressure", "humidity", "wind_speed", "weather_description"]
+    #weather_df = pd.read_csv("csv_files/sarimax/weather_features.csv", usecols=col_list_weather, index_col='dt_iso', parse_dates=True)
 
-    weather_df= weather_df.asfreq('H')
-    energy_weather_df=pd.concat([energy_df, weather_df], axis=1)
+    #weather_df= weather_df.asfreq('H')
+    #energy_weather_df=pd.concat([energy_df, weather_df], axis=1)
+
+    energy_weather_df=energy_df.copy()
 
     # ---------------------------------------------------------------------------------
 
@@ -53,7 +55,7 @@ def sarimax_algorithm(file, checked_columns, col_names):
     # ---------------------------------------------------------------------------------
 
     ##SARIMAX (1, 1, 1)X(2, 0, 0, 24)
-    mod= SARIMAX(train_df['total load actual'], order=(1,1,1), seasonal_order=(2,0,0,24))
+    mod= SARIMAX(train_df[useColumns[1]], order=(1,1,1), seasonal_order=(2,0,0,24))
 
     res= mod.fit()
 
@@ -61,14 +63,26 @@ def sarimax_algorithm(file, checked_columns, col_names):
     end= len(train_df) + len(test_df)-1
 
     prediction = res.predict(start, end).rename('Prediction')
-    ax = test_df['total load actual'].plot(legend=True, figsize=(16,8))
+    ax = test_df[useColumns[1]].plot(legend=True, figsize=(16,8))
     prediction.plot(legend=True)
+
+    plt.show()
 
     # ---------------------------------------------------------------------------------
 
-    from statsmodels.tools.eval_measures import rmse
-    ##print("Root mean squared error: "+rmse(test_df['total load actual'], prediction))
+    #print("Root mean squared error: "+rmse(test_df[useColumns[1]], prediction))
+
     
     # ---------------------------------------------------------------------------------
 
-    print(prediction)
+    startPrediction= len(energy_weather_df)
+    endPrediction= len(energy_weather_df) + 100
+
+    predictionFuture = res.predict(startPrediction, endPrediction).rename('Prediction')
+    ax = test_df[useColumns[1]].plot(legend=True, figsize=(16,8))
+    predictionFuture.plot(legend=True)
+    # ---------------------------------------------------------------------------------
+
+    print(predictionFuture)
+
+    plt.show()
