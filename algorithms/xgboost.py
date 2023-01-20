@@ -17,6 +17,8 @@ def xgboost_algorithm(file, checked_columns, col_names):
     from sklearn.metrics import mean_squared_error
     from math import sqrt
 
+
+    '''
     count = 0
     found = False
     indx_col = ""
@@ -25,7 +27,7 @@ def xgboost_algorithm(file, checked_columns, col_names):
         if check.get() == 1 and not found:
             indx_col = col_names[count]
             global df
-            df = pd.read_csv(file, index_col=indx_col)
+            df = pd.read_csv(file, index_col=indx_col, parse_dates=True)
             df.index = pd.to_datetime(df.index)
             df = df.sort_index()
             found = True
@@ -42,13 +44,39 @@ def xgboost_algorithm(file, checked_columns, col_names):
 
     #Drop all NaN rows
     df = df.dropna()
+    '''
+
+    useColumns = []
+    i = 0
+
+    for column in checked_columns:
+        if (checked_columns[i].get() == 1):
+            useColumns.append(col_names[i])
+        i = i + 1
+
+    df = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
+
+    print(df)
+
+    indx_col = useColumns[0]
+    power_col = useColumns[1]
+
+    df.sort_values(by=useColumns[0], ascending=True)
+    df = df.fillna(method='ffill')
+    df = df.sort_values(by=useColumns[0], ascending=True)
+    df.dropna(axis=0, how='any', subset=None, inplace=True)
+
+    df = df[~df.index.duplicated(keep='first')]
+
+    df = df.asfreq('H')
+    df = df.fillna(method='ffill')
 
     #############################################################################################
     #training section
 
     # Before building and training our model, let's split the data into training and testing
     #df_train, df_test = df[df.index < '2016-01-01'], df[df.index >= '2016-01-01']
-    df_train, df_test = df[:], df[-7200:]
+    df_train, df_test = df[:], df[-3000:]
 
     X_train, y_train = date_transform(df_train, power_col)
     X_test, y_test = date_transform(df_test, power_col)
@@ -78,6 +106,7 @@ def xgboost_algorithm(file, checked_columns, col_names):
     #####################################################################################################
     #prediction section
     new_df = index_to_column(df, indx_col, power_col)
+    new_df = remove_tz_from_dataframe(new_df)
     prophet_model2 = Prophet(interval_width=0.95)
     prophet_model2.fit(new_df)
     # 7 days to the future (7x24 = 168)
@@ -119,6 +148,8 @@ def xgboost_algorithm(file, checked_columns, col_names):
 def date_transform(data, power_col):
     df = data.copy()
 
+    print(data)
+
     df['Hour'] = df.index.hour
     df['Dayofweek'] = df.index.dayofweek
     df['Dayofmonth'] = df.index.day
@@ -132,6 +163,16 @@ def date_transform(data, power_col):
     y = df[power_col]
 
     return X, y
+
+def remove_tz_from_dataframe(df_in):
+    import pandas as pd
+    df = df_in.copy()
+    col_times = [ col for col in df.columns if any([isinstance(x, pd.Timestamp) for x in df[col]])]
+    for col in col_times:
+        df[col] = pd.to_datetime(
+            df[col], infer_datetime_format=True)
+        df[col] = df[col].dt.tz_localize(None)
+    return df
 
 
 

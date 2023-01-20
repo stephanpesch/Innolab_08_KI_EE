@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c8c99eca-4ee8-4c4e-a1e5-d7bc47dde74d" name="Changes" comment="XGBOOST implementation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/algorithms/sarimax.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithms/sarimax.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/algorithms/xgboost.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithms/xgboost.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -98,7 +99,8 @@
       <workItem from="1673367623951" duration="6490000" />
       <workItem from="1673430151468" duration="4674000" />
       <workItem from="1673610739729" duration="124000" />
-      <workItem from="1673782937431" duration="4380000" />
+      <workItem from="1673782937431" duration="4413000" />
+      <workItem from="1674240389797" duration="2507000" />
     </task>
     <task id="LOCAL-00001" summary="XGBOOST implementation">
       <created>1671535832000</created>

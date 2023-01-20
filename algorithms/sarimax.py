@@ -34,6 +34,7 @@ def sarimax_algorithm(file, checked_columns, col_names):
     energy_df= energy_df.fillna(method='ffill')
 
 
+
     # ---------------------------------------------------------------------------------
 
     #col_list_weather = ["dt_iso", "temp", "pressure", "humidity", "wind_speed", "weather_description"]
