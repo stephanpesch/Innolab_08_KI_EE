@@ -76,7 +76,7 @@ def xgboost_algorithm(file, checked_columns, col_names):
 
     # Before building and training our model, let's split the data into training and testing
     #df_train, df_test = df[df.index < '2016-01-01'], df[df.index >= '2016-01-01']
-    df_train, df_test = df[:], df[-3000:]
+    df_train, df_test = df[:], df[-22000:]
 
     X_train, y_train = date_transform(df_train, power_col)
     X_test, y_test = date_transform(df_test, power_col)
