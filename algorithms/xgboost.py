@@ -17,35 +17,6 @@ def xgboost_algorithm(file, checked_columns, col_names):
     from sklearn.metrics import mean_squared_error
     from math import sqrt
 
-
-    '''
-    count = 0
-    found = False
-    indx_col = ""
-    power_col = ""
-    for check in checked_columns:
-        if check.get() == 1 and not found:
-            indx_col = col_names[count]
-            global df
-            df = pd.read_csv(file, index_col=indx_col, parse_dates=True)
-            df.index = pd.to_datetime(df.index)
-            df = df.sort_index()
-            found = True
-        if check.get() == 1:
-            power_col = col_names[count]
-        if check.get() == 0:
-            df = df.drop(col_names[count], axis = 1)
-        count += 1
-
-    print(indx_col)
-
-    # The data that we are going to use
-    df.head()
-
-    #Drop all NaN rows
-    df = df.dropna()
-    '''
-
     useColumns = []
     i = 0
 
