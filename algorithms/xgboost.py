@@ -16,6 +16,7 @@ def xgboost_algorithm(file, checked_columns, col_names):
     from xgboost import XGBRegressor
     from sklearn.metrics import mean_squared_error
     from math import sqrt
+    from sklearn.model_selection import GridSearchCV
 
     useColumns = []
     i = 0

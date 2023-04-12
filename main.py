@@ -5,6 +5,9 @@ from tkinter.filedialog import askopenfile
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
+import requests
+from datetime import datetime
+
 
 matplotlib.use('TkAgg')
 
@@ -74,8 +77,77 @@ def open_new_window():
 
     tk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=8, column=2)
 
+def open_weather_window():
+    weather_window = tk.Toplevel(root)
+
+    # sets the title of the
+    # Toplevel widget
+    weather_window.title("Weather Forecast")
+
+    # sets the geometry of toplevel
+    weather_window.geometry("800x500")
+
+    label_weather = tk.Label(weather_window, text="Weather Forecast",
+                     fg="light green",
+                     bg="dark green",
+                     font="Helvetica 16 bold italic").grid(row=1, column=2)
+
+    column_name = tk.Label(weather_window,
+                        text="Time",
+                        font="Helvetica 8 bold italic")
+    column_name.grid(row=2, column=1)
+
+    column_name2 = tk.Label(weather_window,
+                           text="Degree[°C]",
+                           font="Helvetica 8 bold italic")
+    column_name2.grid(row=2, column=2)
+
+    column_name3 = tk.Label(weather_window,
+                            text="Humidity",
+                            font="Helvetica 8 bold italic")
+    column_name3.grid(row=2, column=3)
+
+    column_name4 = tk.Label(weather_window,
+                            text="Wind Speed",
+                            font="Helvetica 8 bold italic")
+    column_name4.grid(row=2, column=4)
+
+    #API CALL
+    city = "Vienna"
+    geolocation = requests.get(
+        "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&appid=49e67018d83e15240778f5b3aa7ecb83")
+    geolocation = geolocation.json()
+    geolocationData = geolocation[0]
+    longitude = geolocationData['lon']
+    latitude = geolocationData['lat']
+
+    weatherForecast = requests.get(
+        "https://api.openweathermap.org/data/3.0/onecall?lat=" + str(latitude) + "&lon=" + str(
+            longitude) + "&exclude=minutely,daily&appid=49e67018d83e15240778f5b3aa7ecb83")
+    weatherForecast = weatherForecast.json()
+    weatherForecastHourlyData = weatherForecast["hourly"]
+
+    for i in range(20):
+        hourlyData = weatherForecastHourlyData[i]["dt"]
+
+        timestamp = pd.to_datetime(hourlyData, utc=True, unit='s')
+        weatherForecastHourlyData[i]["dt"] = timestamp.strftime("%d-%m-%Y, %H:%M:%S")
+        time = tk.Label(weather_window, text=weatherForecastHourlyData[i]["dt"],
+                     font="Helvetica 8").grid(row=i+3, column=1)
+        degree = tk.Label(weather_window, text = round(weatherForecastHourlyData[i]["temp"] - 273.15, 2),
+                     font="Helvetica 8").grid(row=i+3, column=2)
+        hum = tk.Label(weather_window, text=round(weatherForecastHourlyData[i]["humidity"], 2),
+                        font="Helvetica 8").grid(row=i + 3, column=3)
+        wind = tk.Label(weather_window, text=round(weatherForecastHourlyData[i]["wind_speed"], 2),
+                          font="Helvetica 8").grid(row=i + 3, column=4)
+
+    # weatherForecastHourlyData is a list with all the necessary data for the next 20 hours
+
+
 
 tk.Button(root, text='Train Model', command=open_new_window).grid(row=8, column=2)
+
+tk.Button(root, text='Weather Forecast', command=open_weather_window).grid(row=10, column=0)
 
 ####CSV File Upload
 

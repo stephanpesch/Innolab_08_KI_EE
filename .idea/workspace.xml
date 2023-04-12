@@ -4,6 +4,7 @@
     <list default="true" id="c8c99eca-4ee8-4c4e-a1e5-d7bc47dde74d" name="Changes" comment="XGBOOST implementation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/algorithms/xgboost.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithms/xgboost.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +29,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/data" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -101,6 +102,15 @@
       <workItem from="1673782937431" duration="4413000" />
       <workItem from="1674240389797" duration="2682000" />
       <workItem from="1674471298770" duration="1914000" />
+      <workItem from="1674733057527" duration="1334000" />
+      <workItem from="1677167071898" duration="9000" />
+      <workItem from="1677169246475" duration="131000" />
+      <workItem from="1679596440610" duration="918000" />
+      <workItem from="1679742201318" duration="5112000" />
+      <workItem from="1679905060195" duration="1000" />
+      <workItem from="1680011945506" duration="1000" />
+      <workItem from="1681318863934" duration="10000" />
+      <workItem from="1681318876380" duration="2486000" />
     </task>
     <task id="LOCAL-00001" summary="XGBOOST implementation">
       <created>1671535832000</created>
