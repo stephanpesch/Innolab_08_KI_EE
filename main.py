@@ -115,7 +115,7 @@ def open_weather_window():
     #API CALL
     city = "Vienna"
     geolocation = requests.get(
-        "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&appid=49e67018d83e15240778f5b3aa7ecb83")
+        "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "")
     geolocation = geolocation.json()
     geolocationData = geolocation[0]
     longitude = geolocationData['lon']
@@ -123,7 +123,7 @@ def open_weather_window():
 
     weatherForecast = requests.get(
         "https://api.openweathermap.org/data/3.0/onecall?lat=" + str(latitude) + "&lon=" + str(
-            longitude) + "&exclude=minutely,daily&appid=49e67018d83e15240778f5b3aa7ecb83")
+            longitude) + "")
     weatherForecast = weatherForecast.json()
     weatherForecastHourlyData = weatherForecast["hourly"]
 
