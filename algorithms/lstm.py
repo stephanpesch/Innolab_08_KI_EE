@@ -10,10 +10,7 @@ from sklearn.metrics import mean_squared_error
 
 
 def lstm_algorithm(file, checked_columns, col_names):
-    use_cols = []
-    for i in range(len(checked_columns)):
-        if checked_columns[i].get() == 1:
-            use_cols.append(col_names[i])
+    use_cols = get_use_cols(checked_columns, col_names)
 
     # Reduce size of dataset so my computer can handle it
     print(use_cols)
@@ -87,6 +84,14 @@ def lstm_algorithm(file, checked_columns, col_names):
     plt.plot(train_predict_plot)
     plt.plot(test_predict_plot)
     plt.show(block=False)
+
+
+def get_use_cols(checked_columns, col_names):
+    use_cols = []
+    for i in range(len(checked_columns)):
+        if checked_columns[i].get() == 1:
+            use_cols.append(col_names[i])
+    return use_cols
 
 
 # convert an array of values into a dataset matrix
