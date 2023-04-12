@@ -10,12 +10,20 @@ from sklearn.metrics import mean_squared_error
 
 
 def lstm_algorithm(file, checked_columns, col_names):
+    use_cols = []
+    for i in range(len(checked_columns)):
+        if checked_columns[i].get() == 1:
+            use_cols.append(col_names[i])
+
     # Reduce size of dataset so my computer can handle it
-    df_long = pd.read_csv("csv_files/lstm/electricity-consumption-raw.csv", header=0,
-                          usecols=["datetime", "consumption"], parse_dates=["datetime"])
-    df_long["month"] = df_long["datetime"].dt.month
-    df_long["year"] = df_long["datetime"].dt.year
-    df_long["day"] = df_long["datetime"].dt.day
+    print(use_cols)
+    df_long = pd.read_csv(file, header=0,
+                          usecols=use_cols, parse_dates=[col_names[0]])
+    print(df_long.head())
+    print(df_long.info())
+    df_long["month"] = df_long[col_names[0]].dt.month
+    df_long["year"] = df_long[col_names[0]].dt.year
+    df_long["day"] = df_long[col_names[0]].dt.day
     df = df_long.groupby(["year", "month", "day"]).mean()
 
     # fix random seed for reproducibility
