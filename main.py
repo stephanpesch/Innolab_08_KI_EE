@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 import matplotlib
 import requests
 from datetime import datetime
-
-
-matplotlib.use('TkAgg')
-
+from tokens import *
 from algorithms.rnn import *
 from algorithms.lstm import *
 from algorithms.sarimax import *
 from algorithms.xgboost import *
+
+
+matplotlib.use('TkAgg')
 
 # activate interactive mode, so algorithms shouldn't get interrupted when plt.show()
 # plt.ion()
@@ -115,8 +115,9 @@ def open_weather_window():
     #API CALL
     city = "Vienna"
     geolocation = requests.get(
-        "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "")
+        "https://api.openweathermap.org/geo/1.0/direct?q=" + city + "&appid=" + open_weather_map_token)
     geolocation = geolocation.json()
+    print(geolocation)
     geolocationData = geolocation[0]
     longitude = geolocationData['lon']
     latitude = geolocationData['lat']
