@@ -169,6 +169,12 @@ b1.grid(row= 5, column=3)
 label1 = tk.Label(text='Please choose a file')
 label1.grid(row=6, column=3)
 
+b2 = tk.Button(root, text='Upload Weather',
+   width=20,command = lambda:upload_file())
+b2.grid(row= 8, column=3)
+label2 = tk.Label(text='Please choose a weather file, if not already included in consumption data')
+label2.grid(row=9, column=3)
+
 # so root window stays interactive (maybe later)
 # tk.Button(root, text='Run the algorithm', command=threading.Thread(target=run_algorithm).start).grid(row=2, column=1)
 
