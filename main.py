@@ -41,7 +41,7 @@ def run_algorithm():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
-        sarimax_algorithm(file, checked_columns, col_names)
+        sarimax_algorithm(file, weather_file, checked_columns, checked_weather_columns, col_names, weather_col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "RNN"):
         print("I will now run the " + var1.get() + " algorithm")
@@ -66,8 +66,11 @@ def open_new_window():
                         font="Helvetica 10 bold italic")
     column_selection_text.grid(row=2, column=0)
     global checked_columns
+    global checked_weather_columns
     checked_columns = []
+    checked_weather_columns = []
     row_counter = 2
+    weather_row_counter = 2
     for col_name in col_names:
         checked_columns.append(tk.IntVar())
         row_counter+=1
@@ -75,9 +78,31 @@ def open_new_window():
                  onvalue = 1, offvalue = 0, height=1,
                  width = 20, anchor=tk.W).grid(row=row_counter, column=1)
 
+    for weather_col_name in weather_col_names:
+        checked_weather_columns.append(tk.IntVar())
+        weather_row_counter += 1
+        tk.Checkbutton(new_window, text=weather_col_name, variable=checked_weather_columns[-1],
+                       onvalue=1, offvalue=0, height=1,
+                       width=20, anchor=tk.W).grid(row=weather_row_counter, column=4)
+
     tk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=8, column=2)
 
-def open_weather_window():
+def open_forecast_window():
+    # Toplevel object which will
+    # be treated as a new window
+    forecast_window = tk.Toplevel(root)
+
+    # sets the title of the
+    # Toplevel widget
+    forecast_window.title("Forecast Area")
+
+    # sets the geometry of toplevel
+    forecast_window.geometry("800x500")
+
+    tk.Button(forecast_window, text='Predict values').grid(row=8, column=2)
+
+
+def open_weather_window(location):
     weather_window = tk.Toplevel(root)
 
     # sets the title of the
@@ -113,7 +138,7 @@ def open_weather_window():
     column_name4.grid(row=2, column=4)
 
     #API CALL
-    city = "Vienna"
+    city = location
     geolocation = requests.get(
         "https://api.openweathermap.org/geo/1.0/direct?q=" + city + "&appid=" + open_weather_map_token)
     geolocation = geolocation.json()
@@ -122,13 +147,14 @@ def open_weather_window():
     longitude = geolocationData['lon']
     latitude = geolocationData['lat']
 
+
     weatherForecast = requests.get(
         "https://api.openweathermap.org/data/3.0/onecall?lat=" + str(latitude) + "&lon=" + str(
-            longitude) + "")
+            longitude) + "&exclude=minutely,daily&appid=" + open_weather_map_token)
     weatherForecast = weatherForecast.json()
     weatherForecastHourlyData = weatherForecast["hourly"]
 
-    for i in range(20):
+    for i in range(48):
         hourlyData = weatherForecastHourlyData[i]["dt"]
 
         timestamp = pd.to_datetime(hourlyData, utc=True, unit='s')
@@ -142,17 +168,23 @@ def open_weather_window():
         wind = tk.Label(weather_window, text=round(weatherForecastHourlyData[i]["wind_speed"], 2),
                           font="Helvetica 8").grid(row=i + 3, column=4)
 
-    # weatherForecastHourlyData is a list with all the necessary data for the next 20 hours
-
+    # weatherForecastHourlyData is a list with all the necessary data for the next 48 hours
 
 
 tk.Button(root, text='Train Model', command=open_new_window).grid(row=8, column=2)
 
-tk.Button(root, text='Weather Forecast', command=open_weather_window).grid(row=10, column=0)
+tk.Button(root, text='Forecast Area', command=open_forecast_window).grid(row=9, column=2)
+
+locationLabel = tk.Label(text='Enter location')
+locationLabel.grid(row=5, column=2)
+location_field = tk.Entry(root)
+location_field.grid(row=6, column=2)
+
+tk.Button(root, text='Weather Forecast', command=lambda: open_weather_window(location_field.get())).grid(row=10, column=2)
 
 ####CSV File Upload
 
-def upload_file():
+def upload_consumption_file():
     f_types = [('CSV files',"*.csv"),('All',"*.*")]
     global file
     file = filedialog.askopenfilename(filetypes=f_types)
@@ -163,17 +195,32 @@ def upload_file():
     print(col_names)
     label1['text'] = file.split('/')[len(file.split('/'))-1]        #display filename
 
+def upload_weather_file():
+    f_types = [('CSV files', "*.csv"), ('All', "*.*")]
+    global weather_file
+    weather_file = filedialog.askopenfilename(filetypes=f_types)
+    # l1.config(text=file) # display the path
+    df = pd.read_csv(weather_file)  # create DataFrame
+    global weather_col_names
+    weather_col_names = list(df.columns)
+    print(weather_col_names)
+    label2['text'] = weather_file.split('/')[len(weather_file.split('/')) - 1]  # display filename
+
+
 b1 = tk.Button(root, text='Upload CSV-File',
-   width=20,command = lambda:upload_file())
+   width=20,command = lambda:upload_consumption_file())
 b1.grid(row= 5, column=3)
 label1 = tk.Label(text='Please choose a file')
 label1.grid(row=6, column=3)
 
 b2 = tk.Button(root, text='Upload Weather',
-   width=20,command = lambda:upload_file())
+   width=20,command = lambda:upload_weather_file())
 b2.grid(row= 8, column=3)
 label2 = tk.Label(text='Please choose a weather file, if not already included in consumption data')
 label2.grid(row=9, column=3)
+
+
+
 
 # so root window stays interactive (maybe later)
 # tk.Button(root, text='Run the algorithm', command=threading.Thread(target=run_algorithm).start).grid(row=2, column=1)
