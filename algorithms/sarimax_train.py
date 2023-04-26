@@ -77,7 +77,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     ax = test_df[useColumns[1]].plot(legend=True, figsize=(16, 8))
     predictionGRID.plot(legend=True)
 
-    print("rmse")
+    print("rmse" +rmse(test_df['total load actual'], predictionGRID))
 
     #plt.show()
 
