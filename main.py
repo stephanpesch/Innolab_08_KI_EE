@@ -12,7 +12,8 @@ from algorithms.rnn import *
 from algorithms.lstm import *
 from algorithms.sarimax_train import *
 from algorithms.sarimax_predict import *
-from algorithms.xgboost import *
+from algorithms.xgboost_predict import *
+from algorithms.xgboost_train import *
 
 matplotlib.use('TkAgg')
 
@@ -31,6 +32,7 @@ subtitle = tk.Label(root,
 subtitle.grid(row=2, column=2)
 
 global sarimaxModel
+global xgboost_model
 
 
 def run_algorithm():
@@ -42,7 +44,8 @@ def run_algorithm():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("I will now run the " + var1.get() + " algorithm")
-        xgboost_algorithm(file, checked_columns, col_names)
+        xgboost_model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
+                      col_names, weather_col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
@@ -113,8 +116,8 @@ def open_forecast_window():
         lstm_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
-        print("I will now run the " + var1.get() + " algorithm")
-        xgboost_algorithm(file, checked_columns, col_names)
+        print("Prediction will be done using the XGBOOST model")
+        xgboost_predict(xgboost_model, location)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("Prediction will be done using the SARIMAX model")
