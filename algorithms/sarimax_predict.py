@@ -74,6 +74,3 @@ def sarimax_predict(model, location):
     #print(predictionFuture)
 
     #plt.show()
-
-
-sarimax_predict(model="bla", location="Valencia")

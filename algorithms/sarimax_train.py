@@ -1,3 +1,9 @@
+from datetime import timedelta, datetime
+
+import pytz
+from dateutil import tz
+
+
 def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, col_names, weather_col_names):
     from pmdarima.arima import auto_arima
     from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -53,9 +59,32 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     energy_weather_df=pd.concat([energy_df, weather_df], axis=1)
 
     # ---------------------------------------------------------------------------------
+    end_date = datetime.now() - timedelta(hours=48)
+    if end_date.minute >= 30:
+        end_date = end_date.replace(second=0, microsecond=0, minute=0, hour=(end_date.hour + 1) % 24)
+    else:
+        end_date = end_date.replace(second=0, microsecond=0, minute=0)
 
-    train_df = energy_weather_df.iloc[len(energy_weather_df) - 532:len(energy_weather_df) - 48]
-    test_df = energy_weather_df.iloc[len(energy_weather_df) - 48:]
+    start_date = end_date - timedelta(hours=532)
+
+    timezone = pytz.timezone('Europe/Madrid')
+    start_date = timezone.localize(start_date)
+    end_date = timezone.localize(end_date)
+
+    energy_weather_df.index = energy_weather_df.index.tz_convert('Europe/Madrid')
+
+    # check if the timezones are the same
+    if energy_weather_df.index.tz == start_date.tzinfo and energy_weather_df.index.tz == end_date.tzinfo:
+        print('The timezone of the index is the same as the timezones of start_date and end_date.')
+    else:
+        print("Timezone Index: " + str(energy_weather_df.index.tz))
+        print("Timezone Start date: " + str(start_date.tzinfo))
+        print('The timezone of the index is different from the timezones of start_date and end_date.')
+
+    train_df = energy_weather_df.loc[start_date:end_date - timedelta(hours=1)]
+    #train_df = energy_weather_df.iloc[len(energy_weather_df) - 532:len(energy_weather_df) - 48]
+    test_df = energy_weather_df.loc[end_date:end_date + timedelta(hours=40)]
+    #test_df = energy_weather_df.iloc[len(energy_weather_df) - 48:]
 
     exog_train = train_df['temp']
     exog_forecast = test_df['temp']
@@ -66,20 +95,25 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     modGRID = SARIMAX(train_df[useColumns[1]], order=(2, 0, 2), exog=exog_train,
                       seasonal_order=(0, 1, 2, 24))
+    print(start_date)
+    print(end_date)
+    resGRID = modGRID.fit(maxiter=200)
 
-    resGRID = modGRID.fit(maxiter=5)
+    print(start_date)
+    print(end_date)
+    startGRID = end_date
+    endGRID = end_date + timedelta(hours=40)
 
-    startGRID = len(train_df)
-    endGRID = len(train_df) + len(test_df) - 1
 
+    print(exog_forecast.info())
+    print(test_df.info())
 
     predictionGRID = resGRID.predict(startGRID, endGRID, exog=exog_forecast).rename('Prediction')
     ax = test_df[useColumns[1]].plot(legend=True, figsize=(16, 8))
     predictionGRID.plot(legend=True)
 
-    print("rmse" +rmse(test_df['total load actual'], predictionGRID))
-
-    #plt.show()
+    plt.show(block=False)
+    print("rmse: " + str(rmse(test_df['total load actual'], predictionGRID)))
 
     return modGRID
 
