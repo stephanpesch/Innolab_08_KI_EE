@@ -1,6 +1,7 @@
 from tokens import open_weather_map_token
 
 import pandas as pd
+import numpy as np
 import requests
 from matplotlib import pyplot as plt
 from algorithms.xgboost_train import *
@@ -40,7 +41,7 @@ def xgboost_predict(model, location):
     # Create a DataFrame from the combined list
     df_future_dates = pd.DataFrame(hourlyWeatherData, columns=['time', 'temp'])
     df_future_dates.asfreq('H')
-    df_future_dates.set_index('time')
+
 
     print(df_future_dates)
 
@@ -50,8 +51,9 @@ def xgboost_predict(model, location):
     #df_future_dates = pd.DataFrame([dti, exogTemperatur], columns=['time', 'temp'])
     df_future_dates['predicted_load'] = np.nan
     df_future_dates.index = pd.to_datetime(df_future_dates['time'], format='%Y-%m-%d %H:%M:%S')
+    df_future_dates.drop(["time"], axis=1, inplace=True)
     df_future_dates_copy = df_future_dates.copy()
-    X_test_future, y_test_future = xgboost_train.create_features(df_future_dates, label='predicted_load')
+    X_test_future, y_test_future = create_features(df_future_dates, label='predicted_load')
 
     print(df_future_dates)
 
@@ -59,7 +61,7 @@ def xgboost_predict(model, location):
 
     df_future_dates['predicted_load'] = y_future
     plt.figure(figsize=(20, 8))
-    plt.plot(list(df_future_dates['time']), list(df_future_dates['predicted_load']))
+    plt.plot(list(df_future_dates.index), list(df_future_dates['predicted_load']))
     plt.title("Predicted")
     plt.ylabel("load")
     plt.xlabel("time")

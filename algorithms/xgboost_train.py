@@ -65,6 +65,8 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
     y_train = y_train.fillna(y_train.mean())
     y_test = y_test.fillna(y_test.mean())
 
+    print(X_train)
+
     xgb_model = XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
                                  min_child_weight=4, n_estimators=1000, subsample=0.5)
 

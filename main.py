@@ -32,7 +32,6 @@ subtitle = tk.Label(root,
 subtitle.grid(row=2, column=2)
 
 global sarimaxModel
-global xgboost_model
 
 
 def run_algorithm():
@@ -44,7 +43,7 @@ def run_algorithm():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("I will now run the " + var1.get() + " algorithm")
-        xgboost_model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
+        model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
                       col_names, weather_col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
@@ -117,7 +116,7 @@ def open_forecast_window():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("Prediction will be done using the XGBOOST model")
-        xgboost_predict(xgboost_model, location)
+        xgboost_predict(model, location)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("Prediction will be done using the SARIMAX model")
