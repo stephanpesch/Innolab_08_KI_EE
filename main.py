@@ -31,8 +31,6 @@ subtitle = tk.Label(root,
                     font="Helvetica 10 bold italic")
 subtitle.grid(row=2, column=2)
 
-global sarimaxModel
-
 
 def run_algorithm():
     global model
@@ -49,7 +47,7 @@ def run_algorithm():
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
         model = sarimax_train(file, weather_file, checked_columns, checked_weather_columns,
-                              col_names, weather_col_names)
+                              col_names, weather_col_names, root)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "RNN"):
         print("I will now run the " + var1.get() + " algorithm")

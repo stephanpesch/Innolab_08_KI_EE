@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import pandas as pd
+import pytz
 import requests
 from matplotlib import pyplot as plt
 
@@ -21,7 +22,7 @@ def sarimax_predict(model, location):
     geolocation = requests.get(
         "https://api.openweathermap.org/geo/1.0/direct?q=" + location + "&appid=" + open_weather_map_token)
     geolocation = geolocation.json()
-    print(geolocation)
+
     geolocationData = geolocation[0]
     longitude = geolocationData['lon']
     latitude = geolocationData['lat']
@@ -45,8 +46,7 @@ def sarimax_predict(model, location):
 
         weatherForecastHourlyData[i]["dt"] = timestamp.strftime("%d-%m-%Y, %H:%M:%S")
 
-        hourlyTemp=round(weatherForecastHourlyData[i]["temp"] - 273.15, 2)
-
+        hourlyTemp = weatherForecastHourlyData[i]["temp"]
 
         hourlyTimeData.append(timestamp)
         hourlyTempData.append(hourlyTemp)
@@ -59,18 +59,19 @@ def sarimax_predict(model, location):
     exogTemperatur.asfreq('H')
     exogTemperatur.set_index('Time')
 
-    print(hourlyWeatherData)
+    print(exogTemperatur)
 
 
-    #predictionFuture = model.predict(startPrediction, endPrediction).rename('Prediction')
-    #predictionFuture = model.predict(startPrediction, endPrediction, exog=exogTemperatur['Temperatur']).rename('Prediction')
-    #ax = test_df[useColumns[1]].plot(legend=True, figsize=(16, 8))
+    timezone = pytz.timezone('Europe/Madrid')
+    startPrediction = timezone.localize(startPrediction)
+    endPrediction = timezone.localize(endPrediction)
 
+    predictionFuture = model.predict(startPrediction, endPrediction, exog=exogTemperatur['Temperatur']).rename('Prediction')
 
-    #ax = test_df[useColumns[1]].plot(legend=True, figsize=(16, 8))
-    #predictionFuture.plot(legend=True)
+    print(predictionFuture)
+
+    predictionFuture.plot(legend=True)
     # ---------------------------------------------------------------------------------
 
-    #print(predictionFuture)
 
-    #plt.show()
+    plt.show()
