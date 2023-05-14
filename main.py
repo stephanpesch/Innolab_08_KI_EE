@@ -92,7 +92,7 @@ def open_new_window():
                        onvalue=1, offvalue=0, height=1,
                        width=20, anchor=tk.W).grid(row=weather_row_counter, column=4)
 
-    tk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=8, column=2)
+    tk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=8, column=6)
 
 
 def open_forecast_window():

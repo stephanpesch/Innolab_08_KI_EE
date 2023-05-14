@@ -25,8 +25,6 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     energy_df = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
 
-    print(energy_df)
-
     energy_df.sort_values(by=useColumns[0], ascending=True)
     energy_df = energy_df.fillna(method='ffill')
     energy_df = energy_df.sort_values(by=useColumns[0], ascending=True)
@@ -50,13 +48,13 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     weather_df = pd.read_csv(weather_file, usecols=useWeatherColumns, index_col=useWeatherColumns[0], parse_dates=True)
 
     weather_df = weather_df.asfreq('H')
-    print(weather_df)
     energy_weather_df = pd.concat([energy_df, weather_df], axis=1)
 
     # ---------------------------------------------------------------------------------
     end_date = datetime.now() - timedelta(hours=39)
     if end_date.minute >= 30:
         end_date = end_date.replace(second=0, microsecond=0, minute=0, hour=(end_date.hour + 1) % 24)
+
     else:
         end_date = end_date.replace(second=0, microsecond=0, minute=0)
 
@@ -70,6 +68,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     train_df = energy_weather_df.loc[start_date:end_date - timedelta(hours=1)]
     # train_df = energy_weather_df.iloc[len(energy_weather_df) - 532:len(energy_weather_df) - 48]
+
     test_df = energy_weather_df.loc[end_date:end_date + timedelta(hours=39)]
     # test_df = energy_weather_df.iloc[len(energy_weather_df) - 48:]
 
@@ -95,6 +94,9 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     ax = test_df[useColumns[1]].plot(legend=True, figsize=(16, 8))
     predictionGRID.plot(legend=True)
 
+    print(predictionGRID)
+    predictionDF = pd.DataFrame(predictionGRID)
+
     rmseValue = str(rmse(test_df['total load actual'], predictionGRID))
 
     print("rmse: " + rmseValue)
@@ -109,22 +111,28 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     # sets the geometry of toplevel
     trainResultWindow.geometry("800x500")
 
-    # create the dataframe widget
-    dataframe = ttk.Treeview(trainResultWindow, columns=list(predictionGRID.columns), show='headings')
-    for col in predictionGRID.columns:
-        dataframe.heading(col, text=col)
-    for index, row in predictionGRID.iterrows():
-        dataframe.insert('', 'end', values=list(row))
+    # create a Listbox widget
+    my_listbox = tk.Listbox(trainResultWindow)
+    # add each element of the Series to the Listbox
+    # add each row of the DataFrame to the Listbox
+    for index, row in predictionDF.iterrows():
+        my_listbox.insert(tk.END, f"{row}")
+    # pack the Listbox widget onto the window
+    labelResults = tk.Label(trainResultWindow, text="Root-Mean-Squared-Error")
+    labelResults.grid(row=1, column=2)
+    my_listbox.grid(row=2, column=2, sticky="nswe")
 
-    # add the dataframe widget to the window
-    dataframe.pack()
+    trainResultWindow.rowconfigure(2, weight=1)
+    trainResultWindow.columnconfigure(2, weight=1)
 
     my_var = tk.StringVar()
     my_var.set(rmseValue)
 
     # create a label to display the variable
     my_label = tk.Label(trainResultWindow, textvariable=my_var)
-    my_label.pack()
+    labelRMSE = tk.Label(trainResultWindow, text="Root-Mean-Squared-Error")
+    my_label.grid(row=2, column=4)
+    labelRMSE.grid(row=1, column=4)
 
     # ---------------------------------------------------------------------------------
 
