@@ -83,7 +83,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
                       seasonal_order=(0, 1, 2, 24))
     print(start_date)
     print(end_date)
-    resGRID = modGRID.fit(maxiter=2)
+    resGRID = modGRID.fit(maxiter=200)
 
     startGRID = end_date
     endGRID = end_date + timedelta(hours=39)
@@ -101,7 +101,6 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     print("rmse: " + rmseValue)
 
-    #TODO does not work
     trainResultWindow = tk.Toplevel(rootWindow)
 
     # sets the title of the
@@ -118,7 +117,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     for index, row in predictionDF.iterrows():
         my_listbox.insert(tk.END, f"{row}")
     # pack the Listbox widget onto the window
-    labelResults = tk.Label(trainResultWindow, text="Root-Mean-Squared-Error")
+    labelResults = tk.Label(trainResultWindow, text="Results")
     labelResults.grid(row=1, column=2)
     my_listbox.grid(row=2, column=2, sticky="nswe")
 
@@ -154,7 +153,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     newModel = SARIMAX(train_df[useColumns[1]], order=(2, 0, 2), exog=exog_train,
                        seasonal_order=(0, 1, 2, 24))
 
-    returnModel = newModel.fit(maxiter=2)
+    returnModel = newModel.fit(maxiter=200)
 
     plt.show(block=False)
     print("Model is ready")
