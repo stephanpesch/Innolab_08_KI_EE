@@ -3,8 +3,7 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
     import pandas as pd
     import matplotlib
     import matplotlib.pyplot as plt
-    from prophet import Prophet
-    from xgboost import XGBRegressor
+    import xgboost as xgb
     from sklearn.metrics import mean_squared_error
     from math import sqrt
 
@@ -67,7 +66,7 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     print(X_train)
 
-    xgb_model = XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
+    xgb_model = xgb.XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
                                  min_child_weight=4, n_estimators=1000, subsample=0.5)
 
     xgb_model.fit(X_train, y_train,
@@ -96,7 +95,6 @@ def create_features(df, label):
     df['Dayofweek'] = df.index.dayofweek
     df['Dayofmonth'] = df.index.day
     df['Dayofyear'] = df.index.dayofyear
-    df['weekofyear'] = df.index.weekofyear
     df['Month'] = df.index.month
     df['Quarter'] = df.index.quarter
     df['Year'] = df.index.year

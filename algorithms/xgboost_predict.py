@@ -5,9 +5,20 @@ import numpy as np
 import requests
 from matplotlib import pyplot as plt
 from algorithms.xgboost_train import *
+import re
 from datetime import datetime
 
-def xgboost_predict(model, location):
+def xgboost_predict(model, location, checked_weather_columns, weather_col_names):
+    useWeatherColumns = []
+    i = 0
+
+    for column in checked_weather_columns:
+        if (checked_weather_columns[i].get() == 1):
+            useWeatherColumns.append(weather_col_names[i])
+        i = i + 1
+
+    useWeatherColumns[0] = "time"
+
     # API CALL
     geolocation = requests.get(
         "https://api.openweathermap.org/geo/1.0/direct?q=" + location + "&appid=" + open_weather_map_token)
@@ -23,23 +34,28 @@ def xgboost_predict(model, location):
     weatherForecast = weatherForecast.json()
     weatherForecastHourlyData = weatherForecast["hourly"]
 
-    hourlyTimeData = []
-    hourlyTempData = []
+    hourlyDateTime = []
+    hourlyWeatherData = np.zeros((48, len(useWeatherColumns) - 1))
     for i in range(48):
         hourlyData = weatherForecastHourlyData[i]["dt"]
 
         timestamp = pd.to_datetime(hourlyData, utc=False, unit='s')
         weatherForecastHourlyData[i]["dt"] = timestamp.strftime("%d-%m-%Y, %H:%M:%S")
-        hourlyTemp = round(weatherForecastHourlyData[i]["temp"] - 273.15, 2)
 
-        hourlyTimeData.append(timestamp)
-        hourlyTempData.append(hourlyTemp)
+        for j in range(len(useWeatherColumns) - 1):
+            if useWeatherColumns[j + 1] == "temp":
+                hourlyWeatherData[i][j] = round(weatherForecastHourlyData[i][useWeatherColumns[j + 1]] - 273.15, 2)
+            else:
+                hourlyWeatherData[i][j] = round(weatherForecastHourlyData[i][useWeatherColumns[j + 1]], 2)
 
-    # Combine the lists using zip
-    hourlyWeatherData = list(zip(hourlyTimeData, hourlyTempData))
+        hourlyDateTime.append(timestamp)
 
-    # Create a DataFrame from the combined list
-    df_future_dates = pd.DataFrame(hourlyWeatherData, columns=['time', 'temp'])
+    # Create a DataFrame
+    df_time = pd.DataFrame(hourlyDateTime, columns=['time'])
+    useWeatherColumns.remove("time")
+    df_weather = pd.DataFrame(hourlyWeatherData, columns=useWeatherColumns)
+
+    df_future_dates = pd.concat([df_time, df_weather], axis=1)
     df_future_dates.asfreq('H')
 
 
@@ -47,8 +63,6 @@ def xgboost_predict(model, location):
 
     # -----------------------------------------------------------------------------
     #future prediction
-    #dti = pd.date_range(datetime.now(), periods=48, freq="H")
-    #df_future_dates = pd.DataFrame([dti, exogTemperatur], columns=['time', 'temp'])
     df_future_dates['predicted_load'] = np.nan
     df_future_dates.index = pd.to_datetime(df_future_dates['time'], format='%Y-%m-%d %H:%M:%S')
     df_future_dates.drop(["time"], axis=1, inplace=True)

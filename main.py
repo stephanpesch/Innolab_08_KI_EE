@@ -144,7 +144,7 @@ def open_forecast_window():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "XGBOOST"):
         print("Prediction will be done using the XGBOOST model")
-        xgboost_predict(model, location)
+        xgboost_predict(model, location, checked_weather_columns, weather_col_names)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("Prediction will be done using the SARIMAX model")
