@@ -52,7 +52,7 @@ def run_algorithm():
     elif (var1.get() == "XGBOOST"):
         print("I will now run the " + var1.get() + " algorithm")
         model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
-                      col_names, weather_col_names)
+                      col_names, weather_col_names, grid_var)
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "SARIMAX"):
         print("I will now run the " + var1.get() + " algorithm")
@@ -114,6 +114,9 @@ def open_new_window():
         ttk.Checkbutton(new_window, text=weather_col_name, variable=checked_weather_columns[-1],
                        onvalue=1, offvalue=0).grid(row=weather_row_counter, column=8)
 
+    global grid_var
+    grid_var = tk.IntVar()
+    ttk.Checkbutton(new_window, text="Perform Grid Search", variable=grid_var, onvalue=1, offvalue=0).grid(row=48, column=3)
     ttk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=50, column=3)
 
 
