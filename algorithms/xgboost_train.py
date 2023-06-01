@@ -78,23 +78,27 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
 
         param_grid = {
             'max_depth': [3, 5, 7],
-            'learning_rate': [0.1, 0.01, 0.001],
-            'subsample': [0.8, 1.0]
+            'subsample': [0.6, 0.8],
+            'reg_alpha': [0, 0.1, 0.5],
+            'reg_lambda': [0, 0.1, 0.5]
         }
 
         '''
+        'learning_rate': [0.1, 0.01, 0.001],
             colsample_bytree': [0.8, 1.0],
             'gamma': [0, 0.1, 0.2],
             'reg_alpha': [0, 0.1, 0.5],
             'reg_lambda': [0, 0.1, 0.5]
         '''
 
-        xgb_model = xgb.XGBRegressor(n_estimators=1000)
+        xgb_model = xgb.XGBRegressor(n_estimators=300, colsample_bytree=0.8, learning_rate=0.05)
 
-        grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, scoring='neg_mean_squared_error')
+        grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, scoring='neg_mean_squared_error',
+                                   verbose=3)
         grid_search.fit(X_train, y_train)
 
         xgb_model_train = grid_search.best_estimator_
+        print(grid_search.best_params_)
 
         xgb_pred = xgb_model_train.predict(X_test)
     else:
