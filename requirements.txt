@@ -1,0 +1,13 @@
+python=3.9
+tensorflow
+scikit-learn
+statsmodels
+xgboost
+prophet
+pandas
+numpy
+matplotlib
+requests
+pmdarima
+pytz
+statsmodels

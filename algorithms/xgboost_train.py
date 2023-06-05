@@ -1,12 +1,12 @@
-def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, col_names, weather_col_names):
+def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, col_names, weather_col_names, grid_var):
     import numpy as np
     import pandas as pd
     import matplotlib
     import matplotlib.pyplot as plt
-    from prophet import Prophet
-    from xgboost import XGBRegressor
+    import xgboost as xgb
     from sklearn.metrics import mean_squared_error
     from math import sqrt
+    from sklearn.model_selection import GridSearchCV
 
     useColumns = []
     i = 0
@@ -67,14 +67,49 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     print(X_train)
 
-    xgb_model = XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
-                                 min_child_weight=4, n_estimators=1000, subsample=0.5)
+    # --------------------------------------------------------------------------------------
+    # Grid Search
 
-    xgb_model.fit(X_train, y_train,
-                  eval_set=[(X_train, y_train), (X_test, y_test)],
-                  verbose=False)
+    global xgb_model_train
+    global xgb_pred
 
-    xgb_pred = xgb_model.predict(X_test)
+    if grid_var.get() == 1:
+        print("Performing Grid Search")
+
+        param_grid = {
+            'max_depth': [3, 5, 7],
+            'subsample': [0.6, 0.8],
+            'reg_alpha': [0, 0.1, 0.5],
+            'reg_lambda': [0, 0.1, 0.5]
+        }
+
+        '''
+        'learning_rate': [0.1, 0.01, 0.001],
+            colsample_bytree': [0.8, 1.0],
+            'gamma': [0, 0.1, 0.2],
+            'reg_alpha': [0, 0.1, 0.5],
+            'reg_lambda': [0, 0.1, 0.5]
+        '''
+
+        xgb_model = xgb.XGBRegressor(n_estimators=300, colsample_bytree=0.8, learning_rate=0.05)
+
+        grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, scoring='neg_mean_squared_error',
+                                   verbose=3)
+        grid_search.fit(X_train, y_train)
+
+        xgb_model_train = grid_search.best_estimator_
+        print(grid_search.best_params_)
+
+        xgb_pred = xgb_model_train.predict(X_test)
+    else:
+        xgb_model_train = xgb.XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
+                                     min_child_weight=4, n_estimators=1000, subsample=0.5)
+
+        xgb_model_train.fit(X_train, y_train,
+                      eval_set=[(X_train, y_train), (X_test, y_test)],
+                      verbose=False)
+
+        xgb_pred = xgb_model_train.predict(X_test)
 
     rmse = sqrt(mean_squared_error(y_test, xgb_pred))  # root mean square error
     print("rmse: " + str(rmse))
@@ -88,7 +123,7 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
     plt.legend()
     plt.show()
 
-    return xgb_model
+    return xgb_model_train
 
 
 def create_features(df, label):
@@ -96,7 +131,6 @@ def create_features(df, label):
     df['Dayofweek'] = df.index.dayofweek
     df['Dayofmonth'] = df.index.day
     df['Dayofyear'] = df.index.dayofyear
-    df['weekofyear'] = df.index.weekofyear
     df['Month'] = df.index.month
     df['Quarter'] = df.index.quarter
     df['Year'] = df.index.year
