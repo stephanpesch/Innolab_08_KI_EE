@@ -61,7 +61,8 @@ def run_algorithm():
         print(var1.get() + " algorithm completed")
     elif (var1.get() == "RNN"):
         print("I will now run the " + var1.get() + " algorithm")
-        rnn_algorithm(file, checked_columns, col_names)
+        rnn_algorithm(file, weather_file, checked_columns, checked_weather_columns,
+                      col_names, weather_col_names)
         print(var1.get() + " algorithm completed")
 
 
