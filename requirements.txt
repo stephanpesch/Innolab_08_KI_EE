@@ -1,0 +1,8 @@
+tensorflow
+scikit-learn
+statsmodels
+xgboost
+prophet
+pandas
+matplotlib
+requests
