@@ -8,11 +8,17 @@ To run the application:
    ```
 3. Create an environment, change `<env>` to whatever name you want to give your environment:
    ```bash
-   $  conda create --name <env> --file requirements.txt
+   $ conda create --name <env> --file requirements.txt
+   $ conda activate <env>
    ```
 4. To add a OpenWeatherMap Token create a file named "tokens.py" and create the variable "open_weather_map_token" like this:
    ```python
    open_weather_map_token = "token here"
+   ```
+   
+5. To start the application:
+   ```bash
+   $ python main.py
    ```
 
 ## Starting page
