@@ -4,6 +4,7 @@ import matplotlib
 
 from algorithms.lstm import *
 from algorithms.rnn_train import *
+from algorithms.rnn_predict import *
 from algorithms.sarimax_predict import *
 from algorithms.sarimax_train import *
 from algorithms.xgboost_predict import *
@@ -21,7 +22,7 @@ def run_algorithm():
         "LSTM": lstm_algorithm,
         "XGBOOST": xgboost_train,
         "SARIMAX": sarimax_train,
-        "RNN": rnn_algorithm
+        "RNN": rnn_train
     }
 
     print("I will now run the " + var1.get() + " algorithm")
@@ -120,7 +121,7 @@ def open_forecast_window():
         print(var1.get() + " algorithm completed")
     elif var1.get() == "RNN":
         print("I will now run the " + var1.get() + " algorithm")
-        rnn_algorithm(file, checked_columns, col_names)
+        rnn_predict(model, location)
         print(var1.get() + " algorithm completed")
 
     tk.Button(forecast_window, text='Predict values').grid(row=35, column=5)
