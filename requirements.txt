@@ -11,3 +11,4 @@ requests
 pmdarima
 pytz
 statsmodels
+chardet
