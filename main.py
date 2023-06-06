@@ -11,29 +11,9 @@ from algorithms.xgboost_train import *
 
 matplotlib.use('TkAgg')
 
+
 # activate interactive mode, so algorithms shouldn't get interrupted when plt.show()
 # plt.ion()
-root = tk.Tk()
-root.geometry("1200x600")
-root.minsize(1200, 600)
-root.tk.call("source", "Azure/azure.tcl")
-root.tk.call("set_theme", "dark")
-
-n_rows = 40
-n_columns = 10
-for i in range(n_rows):
-    root.grid_rowconfigure(i, weight=1)
-for i in range(n_columns):
-    root.grid_columnconfigure(i, weight=1)
-
-label = ttk.Label(root, text="Energy Consumption Forecast",
-                  font=("Arial", 18))
-label.grid(row=1, column=5)
-subtitle = ttk.Label(root,
-                     text="To train a model with your data, please select an algorithm and upload your data as CSV-file",
-                     font=("Arial", 13))
-subtitle.grid(row=2, column=5)
-
 
 def run_algorithm():
     global model
@@ -221,18 +201,6 @@ def open_weather_window():
     # weatherForecastHourlyData is a list with all the necessary data for the next 48 hours
 
 
-ttk.Button(root, text='Train Model', command=open_new_window).grid(row=15, column=5)
-
-ttk.Button(root, text='Forecast Area', command=open_forecast_window).grid(row=16, column=5)
-
-locationLabel = tk.Label(text='Enter location')
-locationLabel.grid(row=18, column=5)
-location_field = tk.Entry(root)
-location_field.grid(row=19, column=5)
-
-ttk.Button(root, text='Weather Forecast', command=lambda: open_weather_window()).grid(row=20, column=5)
-
-
 ####CSV File Upload
 
 def upload_consumption_file():
@@ -259,31 +227,58 @@ def upload_weather_file():
     label2['text'] = weather_file.split('/')[len(weather_file.split('/')) - 1]  # display filename
 
 
-b1 = ttk.Button(root, text='Upload CSV-File',
-                width=20, command=lambda: upload_consumption_file())
-b1.grid(row=15, column=7)
-label1 = ttk.Label(text='Consumption Data')
-label1.grid(row=16, column=7)
-
-b2 = ttk.Button(root, text='Upload Weather',
-                width=20, command=lambda: upload_weather_file())
-b2.grid(row=18, column=7)
-label2 = ttk.Label(text='Weather Data')
-label2.grid(row=19, column=7)
-
-# so root window stays interactive (maybe later)
-# tk.Button(root, text='Run the algorithm', command=threading.Thread(target=run_algorithm).start).grid(row=2, column=1)
-
-var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
-
-
 def print_results():
     print(var1.get())
 
 
-ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=print_results).grid(row=15, column=2)
-ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=print_results).grid(row=16, column=2)
-ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=print_results).grid(row=17, column=2)
-ttk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=print_results).grid(row=18, column=2)
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.geometry("1200x600")
+    root.minsize(1200, 600)
+    root.tk.call("source", "Azure/azure.tcl")
+    root.tk.call("set_theme", "dark")
 
-root.mainloop()
+    n_rows = 40
+    n_columns = 10
+    for i in range(n_rows):
+        root.grid_rowconfigure(i, weight=1)
+    for i in range(n_columns):
+        root.grid_columnconfigure(i, weight=1)
+
+    label = ttk.Label(root, text="Energy Consumption Forecast", font=("Arial", 18))
+    label.grid(row=1, column=5)
+    subtitle = ttk.Label(root,
+                         text="To train a model with your data, please select an algorithm and upload your data as CSV-file",
+                         font=("Arial", 13))
+    subtitle.grid(row=2, column=5)
+
+    ttk.Button(root, text='Train Model', command=open_new_window).grid(row=15, column=5)
+    ttk.Button(root, text='Forecast Area', command=open_forecast_window).grid(row=16, column=5)
+    locationLabel = tk.Label(text='Enter location')
+    locationLabel.grid(row=18, column=5)
+    location_field = tk.Entry(root)
+    location_field.grid(row=19, column=5)
+    ttk.Button(root, text='Weather Forecast', command=lambda: open_weather_window()).grid(row=20, column=5)
+
+    b1 = ttk.Button(root, text='Upload CSV-File', width=20, command=lambda: upload_consumption_file())
+    b1.grid(row=15, column=7)
+    label1 = ttk.Label(text='Consumption Data')
+    label1.grid(row=16, column=7)
+    b2 = ttk.Button(root, text='Upload Weather', width=20, command=lambda: upload_weather_file())
+    b2.grid(row=18, column=7)
+    label2 = ttk.Label(text='Weather Data')
+    label2.grid(row=19, column=7)
+
+    var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
+
+    ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=print_results).grid(row=15, column=2)
+    ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=print_results).grid(row=16, column=2)
+    ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=print_results).grid(row=17, column=2)
+    ttk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=print_results).grid(row=18, column=2)
+
+    ttk.Label(root, text="Selected Algorithm:").grid(row=20, column=2)
+    ttk.Label(root, textvariable=var1).grid(row=20, column=3)
+
+    ttk.Button(root, text='Run Algorithm', command=run_algorithm).grid(row=22, column=5)
+
+    root.mainloop()
