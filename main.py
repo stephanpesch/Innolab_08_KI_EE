@@ -37,26 +37,17 @@ subtitle.grid(row=2, column=5)
 
 def run_algorithm():
     global model
-    # print(checked_columns[0].get())  the checked boxes can be accessed like this, 1 = > checked / 0 => not checked
-    if var1.get() == "LSTM":
-        print("I will now run the " + var1.get() + " algorithm")
-        lstm_algorithm(file, checked_columns, col_names)
-        print(var1.get() + " algorithm completed")
-    elif var1.get() == "XGBOOST":
-        print("I will now run the " + var1.get() + " algorithm")
-        model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
-                              col_names, weather_col_names, grid_var)
-        print(var1.get() + " algorithm completed")
-    elif var1.get() == "SARIMAX":
-        print("I will now run the " + var1.get() + " algorithm")
-        model = sarimax_train(file, weather_file, checked_columns, checked_weather_columns,
-                              col_names, weather_col_names, root, grid_var)
-        print(var1.get() + " algorithm completed")
-    elif var1.get() == "RNN":
-        print("I will now run the " + var1.get() + " algorithm")
-        rnn_algorithm(file, weather_file, checked_columns, checked_weather_columns,
-                      col_names, weather_col_names)
-        print(var1.get() + " algorithm completed")
+    algorithm_functions = {
+        "LSTM": lstm_algorithm,
+        "XGBOOST": xgboost_train,
+        "SARIMAX": sarimax_train,
+        "RNN": rnn_algorithm
+    }
+
+    print("I will now run the " + var1.get() + " algorithm")
+    model = algorithm_functions[var1.get()](file, weather_file, checked_columns, checked_weather_columns,
+                                            col_names, weather_col_names, grid_var)
+    print(var1.get() + " algorithm completed")
 
 
 # function to open a new window
@@ -286,13 +277,13 @@ label2.grid(row=19, column=7)
 var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
 
 
-def printResults():
+def print_results():
     print(var1.get())
 
 
-ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=printResults).grid(row=15, column=2)
-ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=printResults).grid(row=16, column=2)
-ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=printResults).grid(row=17, column=2)
-ttk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=printResults).grid(row=18, column=2)
+ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=print_results).grid(row=15, column=2)
+ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=print_results).grid(row=16, column=2)
+ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=print_results).grid(row=17, column=2)
+ttk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=print_results).grid(row=18, column=2)
 
 root.mainloop()
