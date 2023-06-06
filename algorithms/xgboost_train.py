@@ -7,6 +7,7 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
     from sklearn.metrics import mean_squared_error
     from math import sqrt
     from sklearn.model_selection import GridSearchCV
+    from sklearn.metrics import r2_score
 
     useColumns = []
     i = 0
@@ -102,7 +103,7 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
 
         xgb_pred = xgb_model_train.predict(X_test)
     else:
-        xgb_model_train = xgb.XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=15,
+        xgb_model_train = xgb.XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=8,
                                      min_child_weight=4, n_estimators=1000, subsample=0.5)
 
         xgb_model_train.fit(X_train, y_train,
@@ -113,6 +114,8 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
 
     rmse = sqrt(mean_squared_error(y_test, xgb_pred))  # root mean square error
     print("rmse: " + str(rmse))
+    r2_score = r2_score(y_test, xgb_pred)
+    print("R2: ", r2_score)
 
     df_plot = pd.DataFrame({'y_test': y_test, 'xgb_pred': xgb_pred})
     plt.figure(figsize=(20, 8))

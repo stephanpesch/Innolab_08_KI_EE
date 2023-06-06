@@ -27,7 +27,7 @@ def sarimax_gridsearch(ts, pdq, pdqs, maxiter=50, freq='H'):
                 ans.append([comb, combs, output.bic])
                 print('SARIMAX {} x {}12 : BIC Calculated ={}'.format(comb, combs, output.bic))
             except:
-                print("Now grid search is running")
+                print("Grid search is failing")
                 continue
 
     # Find the parameters with minimal BIC value
@@ -106,7 +106,7 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
     # ---------------------------------------------------------------------------------
     #Gridsearch
     if grid_var.get() == 1:
-        p = d = q = range(0, 3)
+        p = d = q = range(0, 2)
         # Generate all different combinations of p, q and q triplets
         pdq = list(itertools.product(p, d, q))
 
@@ -115,8 +115,11 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
         # You'll want to change this according to your time series' frequency
         pdqs = [(x[0], x[1], x[2], 24) for x in list(itertools.product(p, d, q))]
 
-        # Remember to change frequency to match your time series data
-        sarimax_gridsearch(train_df, pdq, pdqs, freq='H')
+
+        df_grid = energy_weather_df["total load actual"]
+        df_grid = df_grid[len(df_grid)-2100:len(df_grid)-1]
+        topCombination=sarimax_gridsearch(df_grid, pdq, pdqs, freq='H')
+        print(topCombination)
     else:
         test_df = energy_weather_df.loc[end_date:end_date + timedelta(hours=39)]
         # test_df = energy_weather_df.iloc[len(energy_weather_df) - 48:]
