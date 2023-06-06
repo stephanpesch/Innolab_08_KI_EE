@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import LSTM
@@ -27,9 +29,37 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
     train_x = reshape_dataset(train_x)
     test_x = reshape_dataset(test_x)
 
-    model = build_and_train_lstm_model(train_x, train_y, look_back)
+    if grid_var.get() == 1:
+        # Hyperparameters to search over
+        param_grid = {
+            'units': [4, 8, 16],
+            'batch_size': [1, 2, 4],
+            'epochs': [10, 15, 20]
+        }
 
-    train_predict, test_predict = make_predictions(model, train_x, test_x)
+        # Create the KerasRegressor wrapper for the LSTM model
+        model = KerasRegressor(build_fn=create_lstm_model, verbose=0)
+
+        # Create the GridSearchCV object
+        grid_search = GridSearchCV(
+            estimator=model,
+            param_grid=param_grid,
+            scoring='neg_mean_squared_error',
+            cv=5,
+            verbose=3
+        )
+
+        # Fit the GridSearchCV object to the training data
+        grid_result = grid_search.fit(train_x, train_y)
+
+        print(grid_result.best_params_)
+
+        # Get the best model from the grid search
+        best_model = grid_result.best_estimator_.model
+    else:
+        best_model = build_and_train_lstm_model(train_x, train_y, look_back)
+
+    train_predict, test_predict = make_predictions(best_model, train_x, test_x)
 
     train_predict, train_y = inverse_transform_predictions(train_predict, train_y, scaler)
     test_predict, test_y = inverse_transform_predictions(test_predict, test_y, scaler)
@@ -42,6 +72,7 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
     train_predict_plot, test_predict_plot = prepare_plot_data(dataset, train_predict, test_predict, look_back)
 
     plot_data(scaler.inverse_transform(dataset), train_predict_plot, test_predict_plot)
+    return best_model
 
 
 def get_selected_columns(checked_columns, col_names):
@@ -49,17 +80,15 @@ def get_selected_columns(checked_columns, col_names):
 
 
 def read_csv_and_reduce(file, use_cols, col_names):
-    df_long = pd.read_csv(file, header=0, usecols=use_cols, parse_dates=[col_names[0]])
+    df_long = pd.read_csv(file, header=0, usecols=use_cols, parse_dates=True, index_col=col_names[0])
     print(df_long.head())
     print(df_long.info())
-    df_long["month"] = df_long[col_names[0]].dt.month
-    df_long["year"] = df_long[col_names[0]].dt.year
-    df_long["day"] = df_long[col_names[0]].dt.day
     return df_long
 
 
 def group_by_and_compute_mean(df_long):
-    df = df_long.groupby(["year", "month", "day"]).mean()
+    df = df_long.tail(48)
+    print(df)
     return df
 
 
@@ -92,12 +121,17 @@ def reshape_dataset(dataset):
     return np.reshape(dataset, (dataset.shape[0], 1, dataset.shape[1]))
 
 
-def build_and_train_lstm_model(train_x, train_y, look_back):
+def create_lstm_model(look_back=1, units=16):
     model = Sequential()
-    model.add(LSTM(4, input_shape=(1, look_back)))
+    model.add(LSTM(units, input_shape=(1, look_back)))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
-    model.fit(train_x, train_y, epochs=15, batch_size=1, verbose=2)
+    return model
+
+
+def build_and_train_lstm_model(train_x, train_y, look_back):
+    model = create_lstm_model(look_back=look_back)
+    model.fit(train_x, train_y, epochs=20, batch_size=1, verbose=2)
     return model
 
 
