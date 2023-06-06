@@ -9,7 +9,8 @@ from tensorflow.python.keras.layers import LSTM
 from tensorflow.python.keras.models import Sequential
 
 
-def lstm_algorithm(file, checked_columns, col_names):
+def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
+                   col_names, weather_col_names, grid_var):
     # Use only columns of col_names that have the value of 1 in checked_columns
     use_cols = [checked_column for col_name, checked_column in zip(checked_columns, col_names) if col_name.get() == 1]
 
