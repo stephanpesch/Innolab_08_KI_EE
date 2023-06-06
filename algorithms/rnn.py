@@ -1,5 +1,5 @@
 def rnn_algorithm(file, weather_file, checked_columns, checked_weather_columns,
-                  col_names, weather_col_names):
+                  col_names, weather_col_names, grid_var):
     import numpy as np # linear algebra
     import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
     import matplotlib.pyplot as plt
