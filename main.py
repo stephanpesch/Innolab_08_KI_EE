@@ -1,18 +1,11 @@
-import numpy as np
-import tkinter as tk
-from tkinter import ttk
 from tkinter import filedialog
-from tkinter.filedialog import askopenfile
-import pandas as pd
-import matplotlib.pyplot as plt
+
 import matplotlib
-import requests
-from datetime import datetime
-from tokens import *
-from algorithms.rnn import *
+
 from algorithms.lstm import *
-from algorithms.sarimax_train import *
+from algorithms.rnn import *
 from algorithms.sarimax_predict import *
+from algorithms.sarimax_train import *
 from algorithms.xgboost_predict import *
 from algorithms.xgboost_train import *
 
@@ -29,15 +22,15 @@ root.tk.call("set_theme", "dark")
 n_rows = 40
 n_columns = 10
 for i in range(n_rows):
-    root.grid_rowconfigure(i,  weight =1)
+    root.grid_rowconfigure(i, weight=1)
 for i in range(n_columns):
-    root.grid_columnconfigure(i,  weight =1)
+    root.grid_columnconfigure(i, weight=1)
 
 label = ttk.Label(root, text="Energy Consumption Forecast",
                   font=("Arial", 18))
 label.grid(row=1, column=5)
 subtitle = ttk.Label(root,
-                    text="To train a model with your data, please select an algorithm and upload your data as CSV-file",
+                     text="To train a model with your data, please select an algorithm and upload your data as CSV-file",
                      font=("Arial", 13))
 subtitle.grid(row=2, column=5)
 
@@ -45,21 +38,21 @@ subtitle.grid(row=2, column=5)
 def run_algorithm():
     global model
     # print(checked_columns[0].get())  the checked boxes can be accessed like this, 1 = > checked / 0 => not checked
-    if (var1.get() == "LSTM"):
+    if var1.get() == "LSTM":
         print("I will now run the " + var1.get() + " algorithm")
         lstm_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "XGBOOST"):
+    elif var1.get() == "XGBOOST":
         print("I will now run the " + var1.get() + " algorithm")
         model = xgboost_train(file, weather_file, checked_columns, checked_weather_columns,
-                      col_names, weather_col_names, grid_var)
+                              col_names, weather_col_names, grid_var)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "SARIMAX"):
+    elif var1.get() == "SARIMAX":
         print("I will now run the " + var1.get() + " algorithm")
         model = sarimax_train(file, weather_file, checked_columns, checked_weather_columns,
                               col_names, weather_col_names, root, grid_var)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "RNN"):
+    elif var1.get() == "RNN":
         print("I will now run the " + var1.get() + " algorithm")
         rnn_algorithm(file, weather_file, checked_columns, checked_weather_columns,
                       col_names, weather_col_names)
@@ -76,7 +69,6 @@ def open_new_window():
     # sets the title of the
     # Toplevel widget
 
-
     # sets the geometry of toplevel
     new_window.geometry("1200x800")
     new_window.minsize(1200, 800)
@@ -90,7 +82,7 @@ def open_new_window():
 
     new_window.title("Data selection")
     column_selection_text = ttk.Label(new_window,
-                                     text="Select Columns",
+                                      text="Select Columns",
                                       font=("Arial", 15))
     column_selection_text.grid(row=1, column=3)
     global checked_columns
@@ -103,21 +95,22 @@ def open_new_window():
     for col_name in col_names:
         checked_columns.append(tk.IntVar())
         row_counter += 1
-        if(row_counter > 20):
+        if (row_counter > 20):
             row_counter = 6
             col_add = 3
         ttk.Checkbutton(new_window, text=col_name, variable=checked_columns[-1],
-                       onvalue=1, offvalue=0).grid(row=row_counter, column=0 + col_add)
+                        onvalue=1, offvalue=0).grid(row=row_counter, column=0 + col_add)
 
     for weather_col_name in weather_col_names:
         checked_weather_columns.append(tk.IntVar())
         weather_row_counter += 1
         ttk.Checkbutton(new_window, text=weather_col_name, variable=checked_weather_columns[-1],
-                       onvalue=1, offvalue=0).grid(row=weather_row_counter, column=8)
+                        onvalue=1, offvalue=0).grid(row=weather_row_counter, column=8)
 
     global grid_var
     grid_var = tk.IntVar()
-    ttk.Checkbutton(new_window, text="Perform Grid Search", variable=grid_var, onvalue=1, offvalue=0).grid(row=48, column=3)
+    ttk.Checkbutton(new_window, text="Perform Grid Search", variable=grid_var, onvalue=1, offvalue=0).grid(row=48,
+                                                                                                           column=3)
     ttk.Button(new_window, text='Train Model', command=run_algorithm).grid(row=50, column=3)
 
 
@@ -142,19 +135,19 @@ def open_forecast_window():
     # Toplevel widget
     forecast_window.title("Forecast Area")
 
-    if (var1.get() == "LSTM"):
+    if var1.get() == "LSTM":
         print("I will now run the " + var1.get() + " algorithm")
         lstm_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "XGBOOST"):
+    elif var1.get() == "XGBOOST":
         print("Prediction will be done using the XGBOOST model")
         xgboost_predict(model, location, checked_weather_columns, weather_col_names)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "SARIMAX"):
+    elif var1.get() == "SARIMAX":
         print("Prediction will be done using the SARIMAX model")
         sarimax_predict(model, location)
         print(var1.get() + " algorithm completed")
-    elif (var1.get() == "RNN"):
+    elif var1.get() == "RNN":
         print("I will now run the " + var1.get() + " algorithm")
         rnn_algorithm(file, checked_columns, col_names)
         print(var1.get() + " algorithm completed")
@@ -181,28 +174,27 @@ def open_weather_window():
     for i in range(n_columns):
         weather_window.grid_columnconfigure(i, weight=1)
 
-
     ttk.Label(weather_window, text="Weather Forecast",
-                             font=("Arial", 15)).grid(row=1, column=1)
+              font=("Arial", 15)).grid(row=1, column=1)
 
     column_name = ttk.Label(weather_window,
-                           text="Time",
-                           font=("Arial", 8))
+                            text="Time",
+                            font=("Arial", 8))
     column_name.grid(row=3, column=1)
 
     column_name2 = ttk.Label(weather_window,
-                            text="Degree[°C]",
-                            font=("Arial", 8))
+                             text="Degree[°C]",
+                             font=("Arial", 8))
     column_name2.grid(row=3, column=2)
 
     column_name3 = ttk.Label(weather_window,
-                            text="Humidity",
-                            font=("Arial", 8))
+                             text="Humidity",
+                             font=("Arial", 8))
     column_name3.grid(row=3, column=3)
 
     column_name4 = ttk.Label(weather_window,
-                            text="Wind Speed",
-                            font=("Arial", 8))
+                             text="Wind Speed",
+                             font=("Arial", 8))
     column_name4.grid(row=3, column=4)
 
     # API CALL
@@ -227,13 +219,13 @@ def open_weather_window():
         timestamp = pd.to_datetime(hourlyData, utc=True, unit='s')
         weatherForecastHourlyData[i]["dt"] = timestamp.strftime("%d-%m-%Y, %H:%M:%S")
         time = ttk.Label(weather_window, text=weatherForecastHourlyData[i]["dt"],
-                        font=("Arial", 5)).grid(row=i + 4, column=1)
+                         font=("Arial", 5)).grid(row=i + 4, column=1)
         degree = ttk.Label(weather_window, text=round(weatherForecastHourlyData[i]["temp"] - 273.15, 2),
-                          font=("Arial", 5)).grid(row=i + 4, column=2)
+                           font=("Arial", 5)).grid(row=i + 4, column=2)
         hum = ttk.Label(weather_window, text=round(weatherForecastHourlyData[i]["humidity"], 2),
-                       font=("Arial", 5)).grid(row=i + 4, column=3)
+                        font=("Arial", 5)).grid(row=i + 4, column=3)
         wind = ttk.Label(weather_window, text=round(weatherForecastHourlyData[i]["wind_speed"], 2),
-                        font=("Arial", 5)).grid(row=i + 4, column=4)
+                         font=("Arial", 5)).grid(row=i + 4, column=4)
 
     # weatherForecastHourlyData is a list with all the necessary data for the next 48 hours
 
@@ -277,14 +269,14 @@ def upload_weather_file():
 
 
 b1 = ttk.Button(root, text='Upload CSV-File',
-               width=20, command=lambda: upload_consumption_file())
+                width=20, command=lambda: upload_consumption_file())
 b1.grid(row=15, column=7)
 label1 = ttk.Label(text='Consumption Data')
 label1.grid(row=16, column=7)
 
 b2 = ttk.Button(root, text='Upload Weather',
-               width=20, command=lambda: upload_weather_file())
-b2.grid(row = 18, column=7)
+                width=20, command=lambda: upload_weather_file())
+b2.grid(row=18, column=7)
 label2 = ttk.Label(text='Weather Data')
 label2.grid(row=19, column=7)
 
