@@ -9,7 +9,7 @@ import matplotlib
 import requests
 from datetime import datetime
 from tokens import *
-from algorithms.rnn import *
+from algorithms.rnn_train import *
 from algorithms.lstm import *
 from algorithms.sarimax_train import *
 from algorithms.sarimax_predict import *
@@ -18,7 +18,7 @@ from algorithms.xgboost_train import *
 
 matplotlib.use('TkAgg')
 
-# activate interactive mode, so algorithms shouldn't get interrupted when plt.show()
+# activate interactive mode, so algorithms shouldn't get interrupted, DO NOT USE plt.show()
 # plt.ion()
 root = tk.Tk()
 root.geometry("1200x600")
