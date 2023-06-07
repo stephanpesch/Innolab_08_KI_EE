@@ -33,8 +33,8 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
         # Hyperparameters to search over
         param_grid = {
             'units': [4, 8, 16],
-            'batch_size': [1, 2, 4],
-            'epochs': [10, 15, 20]
+            'batch_size': [10, 20, 40, 60, 80, 100],
+            'epochs': [10, 50, 100]
         }
 
         # Create the KerasRegressor wrapper for the LSTM model
@@ -46,7 +46,8 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
             param_grid=param_grid,
             scoring='neg_mean_squared_error',
             cv=5,
-            verbose=3
+            verbose=3,
+            n_jobs=-1
         )
 
         # Fit the GridSearchCV object to the training data
@@ -87,8 +88,8 @@ def read_csv_and_reduce(file, use_cols, col_names):
 
 
 def group_by_and_compute_mean(df_long):
-    df = df_long.tail(48)
-    print(df)
+    df = df_long#.tail(48)
+    #print(df)
     return df
 
 
