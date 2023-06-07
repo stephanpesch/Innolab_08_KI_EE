@@ -27,7 +27,7 @@ def run_algorithm():
 
     print("I will now run the " + var1.get() + " algorithm")
     model = algorithm_functions[var1.get()](file, weather_file, checked_columns, checked_weather_columns,
-                                            col_names, weather_col_names, grid_var)
+                                            col_names, weather_col_names, root, grid_var)
     print(var1.get() + " algorithm completed")
 
 

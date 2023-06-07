@@ -1,5 +1,5 @@
 def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
-                  col_names, weather_col_names, grid_var):
+                  col_names, weather_col_names, rootWindow, grid_var):
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt

@@ -12,7 +12,7 @@ from tensorflow.python.keras.models import Sequential
 
 
 def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
-                   col_names, weather_col_names, grid_var):
+                   col_names, weather_col_names, rootWindow, grid_var):
     use_cols = get_selected_columns(checked_columns, col_names)
 
     df_long = read_csv_and_reduce(file, use_cols, col_names)
