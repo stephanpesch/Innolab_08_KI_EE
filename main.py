@@ -72,14 +72,26 @@ def open_new_window():
         if row_counter > 20:
             row_counter = 6
             col_add = 3
-        ttk.Checkbutton(new_window, text=col_name, variable=checked_columns[-1],
-                        onvalue=1, offvalue=0).grid(row=row_counter, column=0 + col_add)
+        check_button = ttk.Checkbutton(new_window, text=col_name, variable=checked_columns[-1], onvalue=1, offvalue=0)
+        check_button.grid(row=row_counter, column=0 + col_add)
+        
+        # set index to true by default
+        if col_name == "time":
+            checked_columns[-1].set(1)  
+        else:
+            checked_columns[-1].set(0)  
 
     for weather_col_name in weather_col_names:
         checked_weather_columns.append(tk.IntVar())
         weather_row_counter += 1
-        ttk.Checkbutton(new_window, text=weather_col_name, variable=checked_weather_columns[-1],
-                        onvalue=1, offvalue=0).grid(row=weather_row_counter, column=8)
+        check_button = ttk.Checkbutton(new_window, text=weather_col_name, variable=checked_weather_columns[-1], onvalue=1, offvalue=0)
+        check_button.grid(row=weather_row_counter, column=8)
+        
+        # set index to true by default
+        if weather_col_name == "dt_iso":
+            checked_weather_columns[-1].set(1)  
+        else:
+            checked_weather_columns[-1].set(0)  
 
     global grid_var
     grid_var = tk.IntVar()
