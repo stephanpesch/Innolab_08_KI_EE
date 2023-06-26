@@ -14,17 +14,21 @@ from tensorflow.python.keras.models import Sequential
 def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
                    col_names, weather_col_names, rootWindow, grid_var):
     use_cols = get_selected_columns(checked_columns, col_names)
+    weather_cols = get_selected_columns(checked_weather_columns, weather_col_names)
 
+    weather_df_long = read_csv_and_reduce(weather_file, weather_cols, weather_col_names)
     df_long = read_csv_and_reduce(file, use_cols, col_names)
-    df = group_by_and_compute_mean(df_long)
+    df = pd.concat([df_long, weather_df_long], axis=1)
+
+    df = group_by_and_compute_mean(df)
 
     dataset, scaler = preprocess_dataset(df)
 
-    train, test = split_dataset(dataset)
+    train, test = split_dataset(dataset, len(df.columns))
 
     look_back = 1
-    train_x, train_y = create_dataset(train, look_back)
-    test_x, test_y = create_dataset(test, look_back)
+    train_x, train_y = create_dataset(train)
+    test_x, test_y = create_dataset(test)
 
     train_x = reshape_dataset(train_x)
     test_x = reshape_dataset(test_x)
@@ -38,7 +42,7 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
         }
 
         # Create the KerasRegressor wrapper for the LSTM model
-        model = KerasRegressor(build_fn=create_lstm_model, verbose=0)
+        model = KerasRegressor(build_fn=create_lstm_model, verbose=0, train_x=train_x)
 
         # Create the GridSearchCV object
         grid_search = GridSearchCV(
@@ -47,7 +51,8 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
             scoring='neg_mean_squared_error',
             cv=5,
             verbose=3,
-            n_jobs=-1
+            n_jobs=-1,
+            error_score='raise'
         )
 
         # Fit the GridSearchCV object to the training data
@@ -58,7 +63,7 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
         # Get the best model from the grid search
         best_model = grid_result.best_estimator_.model
     else:
-        best_model = build_and_train_lstm_model(train_x, train_y, look_back)
+        best_model = build_and_train_lstm_model(train_x, train_y)
 
     train_predict, test_predict = make_predictions(best_model, train_x, test_x)
 
@@ -76,20 +81,46 @@ def lstm_algorithm(file, weather_file, checked_columns, checked_weather_columns,
     return best_model
 
 
+# convert series to supervised learning
+def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = pd.DataFrame(data)
+    cols, names = list(), list()
+    # input sequence (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+        cols.append(df.shift(i))
+        names += [('var%d(t-%d)' % (j + 1, i)) for j in range(n_vars)]
+    # forecast sequence (t, t+1, ... t+n)
+    for i in range(0, n_out):
+        cols.append(df.shift(-i))
+        if i == 0:
+            names += [('var%d(t)' % (j + 1)) for j in range(n_vars)]
+        else:
+            names += [('var%d(t+%d)' % (j + 1, i)) for j in range(n_vars)]
+    # put it all together
+    agg = pd.concat(cols, axis=1)
+    agg.columns = names
+    # drop rows with NaN values
+    if dropnan:
+        agg.dropna(inplace=True)
+    return agg
+
+
 def get_selected_columns(checked_columns, col_names):
     return [checked_column for col_name, checked_column in zip(checked_columns, col_names) if col_name.get() == 1]
 
 
 def read_csv_and_reduce(file, use_cols, col_names):
-    df_long = pd.read_csv(file, header=0, usecols=use_cols, parse_dates=True, index_col=col_names[0])
+    df_long = pd.read_csv(file, header=0, usecols=use_cols[1:], parse_dates=True)
     print(df_long.head())
     print(df_long.info())
     return df_long
 
 
 def group_by_and_compute_mean(df_long):
-    df = df_long#.tail(48)
-    #print(df)
+    df_long = df_long.interpolate(method="linear")
+    df = df_long  # .tail(24*7)
+    # print(df)
     return df
 
 
@@ -102,37 +133,39 @@ def preprocess_dataset(df):
     return dataset, scaler
 
 
-def split_dataset(dataset):
-    train_size = int(len(dataset) * 0.67)
-    train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
+def split_dataset(dataset, num):
+    reframed = series_to_supervised(dataset, 1, 1)
+    from_num = num + 1
+    to_num = from_num + num - 1
+    drop_cols = reframed.columns[range(from_num, to_num)]
+    reframed.drop(drop_cols, axis=1, inplace=True)
+    print(reframed.head())
+    values = reframed.values
+    train_size = 365 * 36
+    train, test = values[:train_size, :], values[train_size:, :]
     print(len(train), len(test))
     return train, test
 
 
-def create_dataset(dataset, look_back=1):
-    data_x, data_y = [], []
-    for i in range(len(dataset) - look_back - 1):
-        a = dataset[i:(i + look_back), 0]
-        data_x.append(a)
-        data_y.append(dataset[i + look_back, 0])
-    return np.array(data_x), np.array(data_y)
+def create_dataset(dataset):
+    return dataset[:, :-1], dataset[:, -1]
 
 
 def reshape_dataset(dataset):
-    return np.reshape(dataset, (dataset.shape[0], 1, dataset.shape[1]))
+    return dataset.reshape((dataset.shape[0], 1, dataset.shape[1]))
 
 
-def create_lstm_model(look_back=1, units=16):
+def create_lstm_model(units=16, train_x=None):
     model = Sequential()
-    model.add(LSTM(units, input_shape=(1, look_back)))
+    model.add(LSTM(units, input_shape=(train_x.shape[1], train_x.shape[2])))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
     return model
 
 
-def build_and_train_lstm_model(train_x, train_y, look_back):
-    model = create_lstm_model(look_back=look_back)
-    model.fit(train_x, train_y, epochs=20, batch_size=1, verbose=2)
+def build_and_train_lstm_model(train_x, train_y):
+    model = create_lstm_model(train_x=train_x)
+    model.fit(train_x, train_y, epochs=50, batch_size=10, verbose=1)
     return model
 
 
