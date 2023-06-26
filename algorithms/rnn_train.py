@@ -55,7 +55,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     # plt.show(block=False)
 
     column_names = df.columns.tolist()
-    column_to_predict = 1
+    column_to_predict = 0
     if 'total load actual' in column_names:
         column_to_predict = column_names.index('total load actual')
 
@@ -89,7 +89,6 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
 
         # Convert to numpy array
         X_train = np.array(X_train)
-
         y_train = np.array(y_train)
         X_test = np.array(X_test)
         y_test = np.array(y_test)
@@ -110,7 +109,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     print('y_test.shape = ', y_test.shape)
 
     # RNN model
-    def create_rnn_model(neurons=40, dropout=0.15):
+    def create_rnn_model(neurons=60, dropout=0.1):
         model = Sequential()
         model.add(SimpleRNN(neurons, activation="tanh", return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(dropout))
@@ -128,12 +127,13 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
 
     # Perform grid search if GridSearch was checked
     if grid_var == 1:
-        # Define the hyperparameters to tune # maybe do less because it takes waaaayyy too long 3+ hours minimum
+        # Define the hyperparameters to tune
         param_grid = {
         'neurons': [20, 40, 60],
-        'dropout': [0.1, 0.2, 0.3],
-        'epochs': [5, 10, 15],
-        'batch_size': [500, 1000, 2000]
+        'dropout': [0.1, 0.2, 0.3]
+        # takes 3+ hours with those parameters included, only 10min with 2 above
+        # 'epochs': [5, 10, 15],
+        # 'batch_size': [500, 1000, 2000]
         }
 
         grid = GridSearchCV(estimator=rnn_model, param_grid=param_grid, cv=3)
@@ -152,8 +152,8 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
                                 validation_data=(X_test, y_test))
     else:
         # create RNN model with fixed parameters
-        best_model = create_rnn_model(neurons=40, dropout=0.15)
-        history = best_model.fit(X_train, y_train, epochs=10, batch_size=1000, validation_data=(X_test, y_test))
+        best_model = create_rnn_model(neurons=60, dropout=0.1)
+        history = best_model.fit(X_train, y_train, epochs=15, batch_size=500, validation_data=(X_test, y_test))
 
     # Plot the training loss and validation loss
     plt.plot(history.history['loss'], label='Training Loss')
@@ -207,3 +207,5 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         plt.title('Predicted Power Consumption vs Temperature')
         plt.legend()
         plt.show(block=False)
+
+    return best_model

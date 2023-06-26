@@ -34,14 +34,7 @@ def run_algorithm():
 # function to open a new window
 # on a button click
 def open_new_window():
-    # Toplevel object which will
-    # be treated as a new window
     new_window = tk.Toplevel(root)
-
-    # sets the title of the
-    # Toplevel widget
-
-    # sets the geometry of toplevel
     new_window.geometry("1200x800")
     new_window.minsize(1200, 800)
 
@@ -53,10 +46,19 @@ def open_new_window():
         new_window.grid_columnconfigure(i, weight=1)
 
     new_window.title("Data selection")
-    column_selection_text = ttk.Label(new_window,
-                                      text="Select Columns",
-                                      font=("Arial", 15))
+
+    column_selection_text = ttk.Label(new_window, text="Select Columns", font=("Arial", 15))
     column_selection_text.grid(row=1, column=3)
+
+    target_header = ttk.Label(new_window, text="Target Value", font=("Arial", 12, "bold"))
+    target_header.grid(row=4, column=2)
+
+    weather_header = ttk.Label(new_window, text="Weather Features", font=("Arial", 12, "bold"))
+    weather_header.grid(row=4, column=8)
+
+    separator = ttk.Separator(new_window, orient="vertical")
+    separator.grid(row=5, column=6, rowspan=25, sticky="ns")
+
     global checked_columns
     global checked_weather_columns
     checked_columns = []
@@ -67,7 +69,7 @@ def open_new_window():
     for col_name in col_names:
         checked_columns.append(tk.IntVar())
         row_counter += 1
-        if (row_counter > 20):
+        if row_counter > 20:
             row_counter = 6
             col_add = 3
         ttk.Checkbutton(new_window, text=col_name, variable=checked_columns[-1],
