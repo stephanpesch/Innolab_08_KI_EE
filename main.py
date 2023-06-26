@@ -284,11 +284,11 @@ if __name__ == "__main__":
     label2 = ttk.Label(text='Weather Data')
     label2.grid(row=19, column=7)
 
-    var1 = tk.StringVar(root, "LSTM")  # Create a variable for strings, and initialize the variable
+    var1 = tk.StringVar(root, "XGBOOST")  # Create a variable for strings, and initialize the variable
 
-    ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=print_results).grid(row=15, column=2)
-    ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=print_results).grid(row=16, column=2)
-    ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=print_results).grid(row=17, column=2)
+    ttk.Radiobutton(root, text="XGBOOST", variable=var1, value="XGBOOST", command=print_results).grid(row=15, column=2)
+    ttk.Radiobutton(root, text="SARIMAX", variable=var1, value="SARIMAX", command=print_results).grid(row=16, column=2)
+    ttk.Radiobutton(root, text="LSTM", variable=var1, value="LSTM", command=print_results).grid(row=17, column=2)
     ttk.Radiobutton(root, text="RNN", variable=var1, value="RNN", command=print_results).grid(row=18, column=2)
 
     ttk.Label(root, text="Selected Algorithm:").grid(row=20, column=2)
