@@ -9,7 +9,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     from keras.models import Sequential
     from keras.wrappers.scikit_learn import KerasRegressor
     from sklearn.model_selection import GridSearchCV
-
+    
     useColumns = []
     i = 0
 
@@ -23,12 +23,9 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     df_energy = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
 
     # Sort and preprocess energy data
-    df_energy.sort_values(by=useColumns[0], ascending=True)
     df_energy = df_energy.fillna(method='ffill')
-    df_energy = df_energy.sort_values(by=useColumns[0], ascending=True) #why 2 times
+    df_energy = df_energy.sort_values(by=useColumns[0], ascending=True)
     df_energy.dropna(axis=0, how='any', subset=None, inplace=True)
-    df_energy = df_energy[~df_energy.index.duplicated(keep='first')] #is this really needed if I have index_col=useColumns[0]
-    df_energy = df_energy.fillna(method='ffill') #why 2 times?
     df_energy = df_energy.asfreq('H')
     print(df_energy)
 
@@ -42,32 +39,52 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         i = i + 1
 
     # Read weather data from file
+    useWeatherColumns = ["dt_iso", "temp"]
     df_weather = pd.read_csv(weather_file, usecols=useWeatherColumns, index_col=useWeatherColumns[0], parse_dates=True)
+    df_weather = df_weather.fillna(method='ffill')
     df_weather = df_weather.asfreq('H')
     print(df_weather)
 
     # Concatenate energy and weather data
-    df = pd.concat([df_energy, df_weather], axis=1)
-
-    # Visualize energy data before normalization
-    # df["total load actual"].plot(figsize=(16, 7), legend=True)
-    # plt.title('Hourly Consumption - Before Normalization')
-    # plt.show(block=False)
+    df = pd.concat([df_weather, df_energy], axis=1)
 
     column_names = df.columns.tolist()
-    column_to_predict = 0
+    column_to_predict = df.columns[-1]
     if 'total load actual' in column_names:
         column_to_predict = column_names.index('total load actual')
-
     number_of_columns = len(column_names)
 
     def normalize_data(df):
         scaler = sklearn.preprocessing.MinMaxScaler()
-        df[column_names] = scaler.fit_transform(df[column_names].values.reshape(-1, len(column_names)))
+        normalized_data = df.copy()
+        normalized_data[column_names] = scaler.fit_transform(normalized_data[column_names].values.reshape(-1, len(column_names)))
+        return normalized_data, scaler
+    def denormalize_data(df, scaler):
+        for column in column_names:
+            if column in df.columns:
+                column_data = df[column].values
+                if len(column_data.shape) == 1:
+                    column_data = column_data.reshape(-1, 2)
+                df[column] = scaler.inverse_transform(column_data).flatten()
         return df
 
+    def create_features(df, label=None):
+        df['Hour'] = df.index.hour
+        df['Dayofweek'] = df.index.dayofweek
+        df['Dayofmonth'] = df.index.day
+        df['Dayofyear'] = df.index.dayofyear
+        df['Month'] = df.index.month
+        df['Quarter'] = df.index.quarter
+        df['Year'] = df.index.year
+
+        X = df.drop(label, axis=1)
+        if label:
+            y = df[label]
+            return X, y
+        return X
+
     # Normalize data
-    df_norm = normalize_data(df)
+    df_norm, scaler = normalize_data(df)
 
     # Visualize data after normalization
     # df_norm.plot(figsize=(16, 7), legend=True)
@@ -78,7 +95,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         X_train = []
         y_train = []
         for i in range(seq_len, len(stock)):
-            X_train.append(stock.iloc[i - seq_len: i, :])
+            X_train.append(stock.iloc[i - seq_len: i, 0])
             y_train.append(stock.iloc[i, column_to_predict])
 
         # Split data into train and test sets
@@ -94,8 +111,8 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         y_test = np.array(y_test)
 
         # Reshape data for RNN input
-        X_train = np.reshape(X_train, (X_train.shape[0], seq_len, number_of_columns))
-        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, number_of_columns))
+        X_train = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
+        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
 
         return [X_train, y_train, X_test, y_test]
 
@@ -123,7 +140,6 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         return model
 
     rnn_model = KerasRegressor(build_fn=create_rnn_model, verbose=0)
-
 
     # Perform grid search if GridSearch was checked
     if grid_var == 1:
@@ -170,6 +186,10 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     rnn_score = r2_score(y_test, rnn_predictions)
     print("R2 Score of RNN model = ", rnn_score)
 
+    df_denorm = denormalize_data(df_norm, scaler)
+    y_test_denorm = denormalize_data(pd.DataFrame(y_test, columns=[column_names[column_to_predict]]), scaler)
+    rnn_predictions_denorm = denormalize_data(pd.DataFrame(rnn_predictions, columns=[column_names[column_to_predict]]), scaler)
+
     def plot_predictions(test, predicted, title, time_index):
         plt.figure(figsize=(16, 7))
         time_index = time_index[-len(test):]
@@ -184,8 +204,8 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     def plot_predictions_hours(test, predicted, title, time_index):
         plt.figure(figsize=(16, 7))
         time_index = time_index[-len(test):]
-        plt.plot(time_index[-24:], test[-24:], color='blue', label='Actual power consumption data')  # Display last 24 rows
-        plt.plot(time_index[-24:], predicted[-24:], alpha=0.7, color='orange', label='Predicted power consumption data')  # Display last 24 rows
+        plt.plot(time_index[-48:], test[-48:], color='blue', label='Actual power consumption data')  # Display last 48 rows
+        plt.plot(time_index[-48:], predicted[-48:], alpha=0.7, color='orange', label='Predicted power consumption data')  # Display last 24 rows
         plt.title(title)
         plt.xlabel('Time in hours')
         plt.ylabel('Normalized power consumption scale')
@@ -193,19 +213,6 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         plt.show(block=False)
 
     plot_predictions(y_test, rnn_predictions, "Predictions made by simple RNN model", df_norm.index[seq_len:])
-    plot_predictions_hours(y_test, rnn_predictions, "Predictions made by simple RNN model", df_norm.index[seq_len:])
-
-    # Get the index range for temperature values corresponding to predicted power consumption
-    temp_index = range(seq_len, seq_len + len(rnn_predictions))
-
-    # Plot temperature against predicted power consumption
-    if 'temp' in column_names:
-        plt.figure(figsize=(10, 6))
-        plt.scatter(df_norm["temp"].values[temp_index], rnn_predictions.flatten(), color='orange', label='Predicted Power Consumption')
-        plt.xlabel('Temperature')
-        plt.ylabel('Predicted Power Consumption')
-        plt.title('Predicted Power Consumption vs Temperature')
-        plt.legend()
-        plt.show(block=False)
+    plot_predictions_hours(y_test, rnn_predictions, "Predictions made by simple RNN model last 48 hours", df_norm.index[seq_len:])
 
     return best_model

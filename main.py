@@ -135,7 +135,8 @@ def open_forecast_window():
         print(var1.get() + " algorithm completed")
     elif var1.get() == "RNN":
         print("I will now run the " + var1.get() + " algorithm")
-        rnn_predict(model, location)
+        rnn_predict(model, location, file, weather_file, checked_columns, checked_weather_columns,
+                  col_names, weather_col_names)
         print(var1.get() + " algorithm completed")
 
     tk.Button(forecast_window, text='Predict values').grid(row=35, column=5)
