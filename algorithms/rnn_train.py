@@ -39,7 +39,6 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         i = i + 1
 
     # Read weather data from file
-    useWeatherColumns = ["dt_iso", "temp"]
     df_weather = pd.read_csv(weather_file, usecols=useWeatherColumns, index_col=useWeatherColumns[0], parse_dates=True)
     df_weather = df_weather.fillna(method='ffill')
     df_weather = df_weather.asfreq('H')
@@ -53,6 +52,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     if 'total load actual' in column_names:
         column_to_predict = column_names.index('total load actual')
     number_of_columns = len(column_names)
+    print(number_of_columns)
 
     def normalize_data(df):
         scaler = sklearn.preprocessing.MinMaxScaler()
@@ -95,7 +95,7 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         X_train = []
         y_train = []
         for i in range(seq_len, len(stock)):
-            X_train.append(stock.iloc[i - seq_len: i, 0])
+            X_train.append(stock.iloc[i - seq_len: i, :column_to_predict])
             y_train.append(stock.iloc[i, column_to_predict])
 
         # Split data into train and test sets
@@ -111,8 +111,8 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         y_test = np.array(y_test)
 
         # Reshape data for RNN input
-        X_train = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
-        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
+        X_train = np.reshape(X_train, (X_train.shape[0], seq_len, number_of_columns-1))
+        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, number_of_columns-1))
 
         return [X_train, y_train, X_test, y_test]
 
@@ -186,9 +186,9 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     rnn_score = r2_score(y_test, rnn_predictions)
     print("R2 Score of RNN model = ", rnn_score)
 
-    df_denorm = denormalize_data(df_norm, scaler)
-    y_test_denorm = denormalize_data(pd.DataFrame(y_test, columns=[column_names[column_to_predict]]), scaler)
-    rnn_predictions_denorm = denormalize_data(pd.DataFrame(rnn_predictions, columns=[column_names[column_to_predict]]), scaler)
+    # df_denorm = denormalize_data(df_norm, scaler)
+    # y_test_denorm = denormalize_data(pd.DataFrame(y_test, columns=[column_names[column_to_predict]]), scaler)
+    # rnn_predictions_denorm = denormalize_data(pd.DataFrame(rnn_predictions, columns=[column_names[column_to_predict]]), scaler)
 
     def plot_predictions(test, predicted, title, time_index):
         plt.figure(figsize=(16, 7))
