@@ -1,6 +1,9 @@
 from tkinter import filedialog
 
 import matplotlib
+import json
+from keras.models import load_model
+import pickle
 
 from algorithms.lstm import *
 from algorithms.rnn_train import *
@@ -127,14 +130,41 @@ def open_forecast_window():
         print(var1.get() + " algorithm completed")
     elif var1.get() == "XGBOOST":
         print("Prediction will be done using the XGBOOST model")
+        model_filename = 'trained/xgboost_model.pkl'
+        with open(model_filename, 'rb') as model_file:
+            model = pickle.load(model_file)
+
+        file_path_energy = 'trained/spaltennamen_xgboost_energy.json'
+        with open(file_path_energy, 'r') as file_to_read:
+            checked_columns = json.load(file_to_read)
+
+        file_path_weather = 'trained/spaltennamen_xgboost_weather.json'
+        with open(file_path_weather, 'r') as file_to_read:
+            checked_weather_columns = json.load(file_to_read)
+
         xgboost_predict(model, location, checked_weather_columns, weather_col_names)
         print(var1.get() + " algorithm completed")
     elif var1.get() == "SARIMAX":
         print("Prediction will be done using the SARIMAX model")
+        model_filename = 'trained/sarimax_model.pkl'
+        with open(model_filename, 'rb') as model_file:
+            model = pickle.load(model_file)
+            
         sarimax_predict(model, location)
         print(var1.get() + " algorithm completed")
     elif var1.get() == "RNN":
         print("I will now run the " + var1.get() + " algorithm")
+        model = load_model('trained/rnn.h5')
+
+        file_path_energy = 'trained/spaltennamen_rnn_energy.json'
+        with open(file_path_energy, 'r') as file_to_read:
+            checked_columns = json.load(file_to_read)
+
+        file_path_weather = 'trained/spaltennamen_rnn_weather.json'
+        with open(file_path_weather, 'r') as file_to_read:
+            checked_weather_columns = json.load(file_to_read)
+        
+
         rnn_predict(model, location, file, weather_file, checked_columns, checked_weather_columns,
                   col_names, weather_col_names)
         print(var1.get() + " algorithm completed")

@@ -12,10 +12,10 @@ def xgboost_predict(model, location, checked_weather_columns, weather_col_names)
     useWeatherColumns = []
     i = 0
 
+    # Select weather columns based on the user's selection
     for column in checked_weather_columns:
-        if (checked_weather_columns[i].get() == 1):
-            useWeatherColumns.append(weather_col_names[i])
-        i = i + 1
+        if column in weather_col_names:  # Überprüfen, ob die Spalte in col_names vorhanden ist
+            useWeatherColumns.append(column)
 
     useWeatherColumns[0] = "time"
 
@@ -70,7 +70,7 @@ def xgboost_predict(model, location, checked_weather_columns, weather_col_names)
     X_test_future, y_test_future = create_features(df_future_dates, label='predicted_load')
 
     print(df_future_dates)
-
+    model = load_model('trained/rnn.h5')
     y_future = model.predict(X_test_future)
 
     df_future_dates['predicted_load'] = y_future

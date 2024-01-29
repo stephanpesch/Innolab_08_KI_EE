@@ -8,6 +8,8 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
     from math import sqrt
     from sklearn.model_selection import GridSearchCV
     from sklearn.metrics import r2_score
+    import json
+    import pickle
 
     useColumns = []
     i = 0
@@ -18,6 +20,10 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
         i = i + 1
 
     df_energy = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
+
+    file_path_energy = 'trained/spaltennamen_xgboost_energy.json'
+    with open(file_path_energy, 'w') as file_to_write:
+        json.dump(useColumns, file_to_write)
 
 
     indx_col = useColumns[0]
@@ -44,6 +50,10 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
         if (checked_weather_columns[i].get() == 1):
             useWeatherColumns.append(weather_col_names[i])
         i = i + 1
+
+    file_path_weather = 'trained/spaltennamen_xgboost_weather.json'
+    with open(file_path_weather, 'w') as file_to_write:
+        json.dump(useWeatherColumns, file_to_write)
 
     df_weather = pd.read_csv(weather_file, usecols=useWeatherColumns, index_col=useWeatherColumns[0], parse_dates=True)
     df_weather = df_weather.asfreq('H')
@@ -102,6 +112,10 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
         print(grid_search.best_params_)
 
         xgb_pred = xgb_model_train.predict(X_test)
+
+        model_filename = 'trained/xgboost_model.pkl'
+        with open(model_filename, 'wb') as model_file:
+            pickle.dump(xgb_model_train, model_file)
     else:
         xgb_model_train = xgb.XGBRegressor(colsample_bytree=0.5, learning_rate=0.05, max_depth=8,
                                      min_child_weight=4, n_estimators=1000, subsample=0.5)
@@ -111,6 +125,11 @@ def xgboost_train(file, weather_file, checked_columns, checked_weather_columns, 
                       verbose=False)
 
         xgb_pred = xgb_model_train.predict(X_test)
+
+        model_filename = 'trained/xgboost_model.pkl'
+        with open(model_filename, 'wb') as model_file:
+            pickle.dump(xgb_model_train, model_file)
+
 
     rmse = sqrt(mean_squared_error(y_test, xgb_pred))  # root mean square error
     print("rmse: " + str(rmse))

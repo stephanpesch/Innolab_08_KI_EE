@@ -7,6 +7,7 @@ import tkinter as tk
 import itertools
 import statsmodels.api as sm
 import pandas as pd
+import pickle
 
 
 def sarimax_gridsearch(ts, pdq, pdqs, maxiter=50, freq='H'):
@@ -220,6 +221,10 @@ def sarimax_train(file, weather_file, checked_columns, checked_weather_columns, 
                        seasonal_order=(0, 1, 2, 24))
 
     returnModel = newModel.fit(maxiter=200)
+
+    model_filename = 'trained/sarimax_model.pkl'
+    with open(model_filename, 'wb') as model_file:
+        pickle.dump(returnModel, model_file)
 
     plt.show(block=False)
     print("Model is ready")

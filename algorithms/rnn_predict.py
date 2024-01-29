@@ -9,6 +9,7 @@ from keras.layers import Dense, Dropout, SimpleRNN
 from keras.models import Sequential
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.model_selection import GridSearchCV
+from keras.models import load_model
 
 import requests
 
@@ -17,11 +18,12 @@ def rnn_predict(model, location, file, weather_file, checked_columns, checked_we
     useColumns = []
     i = 0
 
+    print(checked_columns)
+
     # Select columns based on the user's selection
     for column in checked_columns:
-        if (checked_columns[i].get() == 1):
-            useColumns.append(col_names[i])
-        i = i + 1
+        if column in col_names:  # Überprüfen, ob die Spalte in col_names vorhanden ist
+            useColumns.append(column)
 
     # Read energy data from file
     df_energy = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
@@ -38,9 +40,8 @@ def rnn_predict(model, location, file, weather_file, checked_columns, checked_we
 
     # Select weather columns based on the user's selection
     for column in checked_weather_columns:
-        if (checked_weather_columns[i].get() == 1):
-            useWeatherColumns.append(weather_col_names[i])
-        i = i + 1
+        if column in weather_col_names:  # Überprüfen, ob die Spalte in col_names vorhanden ist
+            useWeatherColumns.append(column)
 
     # Read weather data from file
     useWeatherColumns = ["dt_iso", "temp"]
@@ -56,9 +57,8 @@ def rnn_predict(model, location, file, weather_file, checked_columns, checked_we
     i = 0
 
     for column in checked_weather_columns:
-        if (checked_weather_columns[i].get() == 1):
-            useWeatherColumns.append(weather_col_names[i])
-        i = i + 1
+        if column in weather_col_names:  # Überprüfen, ob die Spalte in col_names vorhanden ist
+            useWeatherColumns.append(column)
     useWeatherColumns[0] = "time"
 
     # API CALL
@@ -125,7 +125,8 @@ def rnn_predict(model, location, file, weather_file, checked_columns, checked_we
 
     # Reshape data for RNN input
     X_test_future = np.reshape(X_test_future, (X_test_future.shape[0], seq_len, 1))
-    
+
+    model = load_model('trained/rnn.h5')
     rnn_future_predictions = model.predict(X_test_future)
     
     time_index = df_future_norm.index[seq_len:]

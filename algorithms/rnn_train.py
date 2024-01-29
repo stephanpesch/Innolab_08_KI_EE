@@ -9,6 +9,8 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     from keras.models import Sequential
     from keras.wrappers.scikit_learn import KerasRegressor
     from sklearn.model_selection import GridSearchCV
+    from keras.models import load_model
+    import json
     
     useColumns = []
     i = 0
@@ -19,8 +21,14 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
             useColumns.append(col_names[i])
         i = i + 1
 
+
+
     # Read energy data from file
     df_energy = pd.read_csv(file, usecols=useColumns, index_col=useColumns[0], parse_dates=True)
+
+    file_path_energy = 'trained/spaltennamen_rnn_energy.json'
+    with open(file_path_energy, 'w') as file_to_write:
+        json.dump(useColumns, file_to_write)
 
     # Sort and preprocess energy data
     df_energy = df_energy.fillna(method='ffill')
@@ -37,6 +45,10 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
         if (checked_weather_columns[i].get() == 1):
             useWeatherColumns.append(weather_col_names[i])
         i = i + 1
+
+    file_path_weather = 'trained/spaltennamen_rnn_weather.json'
+    with open(file_path_weather, 'w') as file_to_write:
+        json.dump(useWeatherColumns, file_to_write)
 
     # Read weather data from file
     df_weather = pd.read_csv(weather_file, usecols=useWeatherColumns, index_col=useWeatherColumns[0], parse_dates=True)
@@ -215,4 +227,5 @@ def rnn_train(file, weather_file, checked_columns, checked_weather_columns,
     plot_predictions(y_test, rnn_predictions, "Predictions made by simple RNN model", df_norm.index[seq_len:])
     plot_predictions_hours(y_test, rnn_predictions, "Predictions made by simple RNN model last 48 hours", df_norm.index[seq_len:])
 
+    best_model.save('trained/rnn.h5')
     return best_model
